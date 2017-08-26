@@ -10,7 +10,6 @@
 */
 
 #include <stdio.h>
-#include <math.h>
 #define DIM 1000//Definindo uma constante para o tamanho do vetor
 
 /*----------------------CHAMADAS DAS FUNÇÕES-------------------------------*/
