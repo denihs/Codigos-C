@@ -79,6 +79,9 @@ int menu(CONTA* conta, char * cpfTemporario)
                                         obtem_segundo_digito_verificador(cpfTemporario);
                                       geraContaCorrente(&conta[totRegistros]);
                                       insere_pontuacao_cpf(cpfTemporario,&conta[totRegistros]);
+                                          printf("\n\nConta adionada com sucesso!\n");
+                                          printf("Dados da conta:\n");
+                                          printf("%s  %s\n",conta[totRegistros].registroCpf,conta[totRegistros].registroConta);
                                       totRegistros++;
                                       sair=0;
                                     break;
@@ -175,18 +178,19 @@ void insere_pontuacao_cpf(char *cpfTemp,CONTA* conta) {
 
     for(j=0;j<TAM_CPF-1;j++){
         if(j!=3 && j!=7 && j!=11 )
-        {
-          conta->registroCpf[j] = cpfTemp[i];
+        {//Quando o 'j' é diferente de 3, 7 e 11 colocamos os numeros do vetor 'cpfTemp' em seus intervalos
+           conta->registroCpf[j] = cpfTemp[i];
           i++;
         }else{
           if(j==3 || j==7)
-          {
+          {//Se 'j' for 3 ou 7 colocamos um ponto (.) na casa
             conta->registroCpf[j] = '.';
-          }else{
+          }else{//Na casa 11 colocamos o traço
             conta->registroCpf[j] = '-';
           }
         }
     }
+    //No fim da linha colocamos o terminador de String
     conta->registroCpf[14] = '\0';
 }
 //objetivo:calcula o primeiro digito verificador de um cpf no formato 999999999
@@ -195,7 +199,7 @@ void insere_pontuacao_cpf(char *cpfTemp,CONTA* conta) {
 void obtem_primeiro_digito_verificador(char *cpf) {
    int digito,soma=0,i,j=0;
       for(i=10;i>1;i--){
-          soma += i*(cpf[j]-48);
+          soma += i*(cpf[j]-48);//Subtrai o valor 48 do caracter para fazer a conversão do caracter para inteiro
           j++;
       }
       soma %= 11;
@@ -204,6 +208,7 @@ void obtem_primeiro_digito_verificador(char *cpf) {
       }else{
           digito = 11 - soma;
       }
+      //Soma 48 para transforma o inteiro em caracter novamente
       cpf[9] = digito+48;
 }
 //objetivo:calcula o segundo digito verificador de um cpf no formato 999999999
@@ -212,7 +217,7 @@ void obtem_primeiro_digito_verificador(char *cpf) {
 void obtem_segundo_digito_verificador(char* cpf) {
   int digito,soma=0,i,j=0;
      for(i=11;i>1;i--){
-         soma += i*(cpf[j]-48);
+         soma += i*(cpf[j]-48);//Subtrai o valor 48 do caracter para fazer a conversão do caracter para inteiro
          j++;
      }
      soma %= 11;
@@ -221,28 +226,30 @@ void obtem_segundo_digito_verificador(char* cpf) {
      }else{
          digito = 11 - soma;
      }
+       //Soma 48 para transforma o inteiro em caracter novamente
      cpf[10] = digito+48;
 }
 //objetivo:gera aleatoriamente um numero de conta corrente no formato 999.999-X
-//parametros: c:onde armazera a conta gerada
+//parametros: Recebe o endereço de uma casa do registro 'CONTA'
 //retorno:nenhum
 void geraContaCorrente(CONTA* conta) {
     int i,j;
 
     for(i=0;i<TAM_CONTA;i++){
         if(i!=3 && i!=7 && i!=8)
-        {
+        {//Quando i é diferente de 3, 7 e 8 colocamos no 'registroConta' de um dado registro numeros aleatorios
           conta->registroConta[i] = geraNumero();
         }else{
             if(i==3){
                 conta->registroConta[i] = '.';
             }else if(i==7){
                 conta->registroConta[i] = '-';
-            }else{
+            }else{//Quando i é igual a 8 colocamos uma letra na casa do 'registroConta'
                 conta->registroConta[i] = geraAlfabeto();
             }
         }
     }
+      //Adicionamos o terminador de String no fim do conjunto
       conta->registroConta[10] = '\0';
 }
 //objetivo:gera aleatoriamente um cpf valido no formato 999.999.999-99
@@ -250,7 +257,9 @@ void geraContaCorrente(CONTA* conta) {
 //retorno: nenhum
 void gera_cpf_valido(char *cpf)
 {
-    int i,clone,sair=1;
+    int i,
+        clone,//Variavel que é incrementada toda vez que temos um numero igual ao anterior
+        sair=1;
       do{
         clone=0;
         for(i=0;i<9;i++){
@@ -264,6 +273,16 @@ void gera_cpf_valido(char *cpf)
             }
         }
         if(clone!=8){sair=0;}
+        //Enquanto os ele gerar os 8 valores iguais o programa ficara em looping
+        //evitando que tenhamos um cpf com todos os valores iguais
       }while(sair);
+}
+void igualdadeCpf()
+{
+
+}
+void igualdadeConta()
+{
+
 }
 
