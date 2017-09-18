@@ -2,54 +2,62 @@
 #include <stdlib.h>
 #include <time.h>
 
-short int Id;
+//Variavel que contara as contas geradas e servira como controle dos CPF's e contas geradas
+short int totRegistros;
 
-#define TAM_LINHA_CPF 1000
-#define TAM_COLUNA_CPF 14
+/*----------------Defines das dos vetores e matrizes---------------------*/
+#define TAM_CPF 15
+#define TAM_CONTA 10
+#define TAM_CPF_TEMP 11
+#define TAM_RESGISTRO 1000
+/*-----------------------------------------------------------------------*/
 
-#define TAM_LINHA_CONTA 1000
-#define TAM_COLUNA_CONTA 9
+/*----------------------ESTRURA DAS CONTAS--------------------------------*/
+struct Contas{
+  char registroCpf[TAM_CPF];
+  char registroConta[TAM_CONTA];
+};
+typedef struct Contas CONTA;
+/*-----------------------------------------------------------------------*/
 
-#define TAM_VET_CHAR 1000
-#define TEMP 11
 
-
-void iniciarSistema(char *registroCpf,char *registroConta);
-int menu(char *registroCpf,char *registroConta,char *cpfTemporario,char *letra);
-
+/*-----------------------Cabeçalhos das funções---------------------------------------*/
+void iniciarSistema(CONTA *conta);
+int menu(CONTA* conta, char * cpfTemporario);
+/*------------------------------------------------------------------------------------*/
 
 int main(){
   srand(time(NULL));
-    int op=1,i,j;
-    char registroCpf[TAM_LINHA_CPF][TAM_COLUNA_CPF];
-    char registroConta[TAM_LINHA_CONTA][TAM_COLUNA_CONTA];
-    char cpfTemporario[TEMP];
-    char letra[TAM_VET_CHAR];
-    iniciarSistema(registroCpf,registroConta);
-    do{op=menu(registroCpf,registroConta,cpfTemporario,letra);}while(op);
-  return 0;
+/*----------------------Variaveis,matrizes e vetores---------------------------*/
+    int op=1;
+    char cpfTemporario[TAM_CPF_TEMP];
+    CONTA conta[TAM_RESGISTRO];
+
+    iniciarSistema(conta);
+    do{op=menu(conta,cpfTemporario);}while(op);
+    return 0;
 }
 //objetivo: Iniciamos o sitema, zerando as matrizes dos cpf's e das contas, e abastecemos o caixa
-//parametros: recebe 2: A matriz com todos os cpf's, a matriz com todos os numeros de contas
+//parametros: Vetor que contem todos os registros de CPF e Conta
 //retorno: Sem retorno
-void iniciarSistema(char registroCpf[][TAM_COLUNA_CPF],char registroConta[][TAM_COLUNA_CONTA])
+void iniciarSistema(CONTA *conta)
 {
     short int i,j;
-    Id = 0;
-    for(i=0;i<TAM_LINHA_CPF;i++){
-        for(j=0;j<TAM_COLUNA_CPF;j++){
-            registroCpf[i][j] = '0';
+    totRegistros = 0;
+    for(i=0;i<TAM_RESGISTRO;i++){
+        for(j=0;j<TAM_CPF;j++){
+            conta[i].registroCpf[j] = '0';
             if(j<7)
             {
-              registroConta[i][j]='0';
+              conta[i].registroConta[j]='0';
             }
         }
     }
 }
 //objetivo: Fazera a função de guiar o usuario pelo sistema e fazera a chamada as funções
-//parametros: recebe 4: A matriz com todos os cpf's, a matriz com todos os numeros de contas, um vetor para os cpf sem formatação e um vetor com as letras das contas
+//parametros: recebe 2: A estrutura onde sera armazenado todos os CPF's e Contas e um vetor para os cpf sem formatação
 //retorno: Retona ZERO caso o usuario opte em sair do sistema e finaliza a aplicação no 'Main'
-int menu(char registroCpf[][TAM_COLUNA_CPF],char registroConta[][TAM_COLUNA_CONTA],char *cpfTemporario,char *letra)
+int menu(CONTA* conta, char * cpfTemporario)
 {
     int opcaoI,opcaoII,sair;
 
@@ -69,9 +77,9 @@ int menu(char registroCpf[][TAM_COLUNA_CPF],char registroConta[][TAM_COLUNA_CONT
                                       gera_cpf_valido(cpfTemporario);
                                         obtem_primeiro_digito_verificador(cpfTemporario);
                                         obtem_segundo_digito_verificador(cpfTemporario);
-                                      geraContaCorrente(registroConta);
-                                      Id++;
-                                      insere_pontuacao_cpf(cpfTemporario,registroCpf);
+                                      geraContaCorrente(&conta[totRegistros]);
+                                      insere_pontuacao_cpf(cpfTemporario,&conta[totRegistros]);
+                                      totRegistros++;
                                       sair=0;
                                     break;
                               case 2:
@@ -134,7 +142,7 @@ char geraAlfabeto() {
     int i;
     char letras[] = { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
-    i=rand()%27;
+    i=rand()%26;
     return(letras[i]-32);
 }
 
@@ -162,23 +170,24 @@ int verifica_cpf_valido(char cpf[]) {
 //objetivo:insere pontuacoes '.' e '- ' em um cpf
 //parametros: cpf_origem:o cpf recebido no format 99999999999
 //            cpf_destino:o cpf com as pontuacoes inseridas no formato 999.999.999-99
-void insere_pontuacao_cpf(char* cpfTemp, char registroCpf[][TAM_COLUNA_CPF]) {
+void insere_pontuacao_cpf(char *cpfTemp,CONTA* conta) {
     int i=0, j;
 
-    for(j=0;j<TAM_COLUNA_CPF;j++){
+    for(j=0;j<TAM_CPF-1;j++){
         if(j!=3 && j!=7 && j!=11 )
         {
-          registroCpf[Id-1][j] = cpfTemp[i];
+          conta->registroCpf[j] = cpfTemp[i];
           i++;
         }else{
           if(j==3 || j==7)
           {
-            registroCpf[Id-1][j] = '.';
+            conta->registroCpf[j] = '.';
           }else{
-            registroCpf[Id-1][j] = '-';
+            conta->registroCpf[j] = '-';
           }
         }
     }
+    conta->registroCpf[14] = '\0';
 }
 //objetivo:calcula o primeiro digito verificador de um cpf no formato 999999999
 //parametros: cpf:o cpf sem os digitos verificadores
@@ -217,24 +226,24 @@ void obtem_segundo_digito_verificador(char* cpf) {
 //objetivo:gera aleatoriamente um numero de conta corrente no formato 999.999-X
 //parametros: c:onde armazera a conta gerada
 //retorno:nenhum
-void geraContaCorrente(char registroConta[][TAM_COLUNA_CONTA]) {
+void geraContaCorrente(CONTA* conta) {
     int i,j;
 
-    for(i=0;i<TAM_COLUNA_CONTA;i++){
+    for(i=0;i<TAM_CONTA;i++){
         if(i!=3 && i!=7 && i!=8)
         {
-          registroConta[Id][i] = geraNumero();
+          conta->registroConta[i] = geraNumero();
         }else{
             if(i==3){
-                registroConta[Id][i] = '.';
+                conta->registroConta[i] = '.';
             }else if(i==7){
-                registroConta[Id][i] = '-';
+                conta->registroConta[i] = '-';
             }else{
-                registroConta[Id][i] = geraAlfabeto();
+                conta->registroConta[i] = geraAlfabeto();
             }
         }
     }
-
+      conta->registroConta[10] = '\0';
 }
 //objetivo:gera aleatoriamente um cpf valido no formato 999.999.999-99
 //parametros: cpf:o cpf onde sera armazenado o cpf valido
@@ -257,3 +266,4 @@ void gera_cpf_valido(char *cpf)
         if(clone!=8){sair=0;}
       }while(sair);
 }
+
