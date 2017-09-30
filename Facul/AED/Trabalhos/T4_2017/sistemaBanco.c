@@ -1,12 +1,23 @@
+/* *Função: Sistema com o intuito de simular todo o codigo basico envolvido
+            por tras de um caixa eletronico, trazendo funcionalidades como:
+            Saque, alteração ou exclusão de cadastros no sistema alem de gerar
+            relatorios de movimentação dos dados do caixa, como por exemplo,
+            atualização simuntanea das notas retiradas ou ate os saques feito
+            por cada um dos cadastrados .
+   *Autor: Denilson Higino da Silva  | RGM: 36712
+   *Data de inicio: 18/09/2017
+   *Data de finalização: 30/09/2017
+===============================================================================*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-//Variavel que contara as contas geradas e servira como controle dos CPF's e contas geradas
-short int totRegistros;
-short int totSaques;
-int VALOR_TOTAL_CAIXA;
+
+short int totRegistros;//Variavel que contara as contas geradas e servira como controle dos CPF's e contas geradas
+short int totSaques;//Variavel que contara quantos saques foram feitos.
+int VALOR_TOTAL_CAIXA;//Armazena o valor presente no caixa e decrementa conforme forem existindo saques
 /*----------------Defines das dos vetores e matrizes---------------------*/
 #define TAM_CPF 15
 #define TAM_CONTA 10
@@ -18,17 +29,18 @@ int VALOR_TOTAL_CAIXA;
 /*-----------------------------------------------------------------------*/
 
 /*----------------------ESTRURA DAS CONTAS--------------------------------*/
+/*Registro que armazena todas as contas registradas no caixa*/
 struct Contas{
   char registroCpf[TAM_CPF];
   char registroConta[TAM_CONTA];
 };
 typedef struct Contas CONTA;
-
+/*Guadas as quantias de cedulas atuais de cada cedula em um vetor */
 struct Cedulas{
    short int C[TIPOS_CEDULAS];
 };
 typedef struct Cedulas CEDULAS;
-
+/*Armazena todos os saques e as quantidades dos saques feitos no sistema*/
 struct Saques{
    int saques[ID_SAQUE_LIN][ID_SAQUE_COL];
 };
@@ -71,37 +83,37 @@ void Extenso(char* valor,int DinheiroOuCedula);
 
 int main(){
   srand(time(NULL));
-/*----------------------Variaveis,matrizes e vetores---------------------------*/
-    int op=1;
-    char cpfTemporario[TAM_CPF_TEMP];
-    CONTA conta[TAM_RESGISTRO];
-    SAQUES saques;
-    CEDULAS cedulas;
+    int op=1; // Variavel de auxilio
+    char cpfTemporario[TAM_CPF_TEMP]; //Cria um vetor para auxilia a a geração dos cpf's validos para as contas
+    CONTA conta[TAM_RESGISTRO];//Cria um vetor com espaço para mil contas
+    SAQUES saques;//Cria uma variavel de SAQUES onde ficaram armazenados todos os saques
+    CEDULAS cedulas;//Cria uma variavel de cedudas onde seram armazenada as cedulas existentes no caixa
 
     iniciarSistema(conta,&cedulas,&saques);
-    do{op=menu(conta,cpfTemporario,&saques,&cedulas);}while(op);
+    do{
+        op=menu(conta,cpfTemporario,&saques,&cedulas);
+    }while(op);
     return 0;
 }
+
 //objetivo: Iniciamos o sitema, zerando as matrizes dos cpf's e das contas, e abastecemos o caixa
-//parametros: Vetor que contem todos os registros de CPF e Conta
+//parametros: Vetor que contem todos os registros de CPF e Conta e a variavel com  todos os valores de cedulas
 //retorno: Sem retorno
 void iniciarSistema(CONTA *conta,CEDULAS* cedulas,SAQUES* saque)
 {
     short int i,j;
     totRegistros = 0;
     totSaques = 0;
+    //Zera o todas os cpf's e contas que seram geradas antes das primeiras iterações com o sistema
     for(i=0;i<TAM_RESGISTRO;i++){
-        for(j=0;j<TAM_CPF;j++){
-            conta[i].registroCpf[j] = '0';
-            if(j<7)
-            {
-              conta[i].registroConta[j]='0';
-            }
-        }
+      strcpy(conta[i].registroCpf,"00000000000");
+      strcpy(conta[i].registroConta,"000000000");
     }
+    //Tambem iniciamos a variavel de saques com '-1' para evitar futuros problemas
     for(i=0;i<ID_SAQUE_LIN;i++){
       saque->saques[i][0] = -1;
     }
+    //Iniciando caixa tanto notas como o primeiro valor do caixa
     cedulas->C[0] = 100;
     cedulas->C[1] = 200;
     cedulas->C[2] = 400;
@@ -113,7 +125,9 @@ void iniciarSistema(CONTA *conta,CEDULAS* cedulas,SAQUES* saque)
     cedulas->C[8] = 2000;
     VALOR_TOTAL_CAIXA = 108000;
 }
-
+//objetivo: Zerar os vetores que seram usados para mostrar os valores por extenso no sistema
+//parametros: Um vetor de char que no caso é o vetor que sera armazenada a quantida em forma de String
+//retorno: Sem retorno
 void iniciaVetores(char * valor)
 {
   int i;
@@ -122,8 +136,8 @@ void iniciaVetores(char * valor)
     valor[i] = '\0';
   }
 }
-//objetivo: Fazera a função de guiar o usuario pelo sistema e fazera a chamada as funções
-//parametros: recebe 2: A estrutura onde sera armazenado todos os CPF's e Contas e um vetor para os cpf sem formatação
+//objetivo: Fazerá a função de guiar o usuario pelo sistema e fazer a chamada as funções
+//parametros: recebe 4-> A estrutura onde sera armazenado todos os CPF's e Contas, um vetor para os cpf sem formatação, a variavel com todos valores das cedulas e a variavel com todos os saques feitos
 //retorno: Retona ZERO caso o usuario opte em sair do sistema e finaliza a aplicação no 'Main'
 int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
 {
@@ -143,37 +157,38 @@ int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
                             __fpurge(stdin);
                             scanf("%c",&opcaoII);
                             switch(opcaoII){
-                              case '1':
-                                      if(totRegistros<1000){
+                              case '1'://Caso escolha incluir um cadastro
+                                      if(totRegistros<1000){//É verificado se existem menos de mil contas ja registradas
                                             do{
-                                                gera_cpf_valido(cpfTemporario);
-                                                  obtem_primeiro_digito_verificador(cpfTemporario);
-                                                  obtem_segundo_digito_verificador(cpfTemporario);
-                                                geraContaCorrente(&conta[totRegistros]);
-                                                insere_pontuacao_cpf(cpfTemporario,&conta[totRegistros]);
-                                            }while( !igualdadeCpf(conta) && !igualdadeConta(conta) );
+                                                gera_cpf_valido(cpfTemporario);//Gera os 9 primeiros digitos do cpf
+                                                  obtem_primeiro_digito_verificador(cpfTemporario);//Obtem o 10° digito
+                                                  obtem_segundo_digito_verificador(cpfTemporario);//Obtem o 11° digito
+                                                geraContaCorrente(&conta[totRegistros]);//Gera uma conta corrente
+                                                insere_pontuacao_cpf(cpfTemporario,&conta[totRegistros]);//Coloca as pontuacoes no cpf
+                                            }while( !igualdadeCpf(conta) && !igualdadeConta(conta) );//E por fim verifica se a conta ou o cpf ja existem no sistema, caso exitam o algoritmo repete o processo
+                                            //Se a conta foi gerada apresentamos os dados gerados para o usuario
                                             printf("\n\nConta adionada com sucesso!\n");
                                             printf("Dados da conta:\n");
                                             printf("%s  %s\n",conta[totRegistros].registroConta,conta[totRegistros].registroCpf);
                                             totRegistros++;
-                                      }else{
+                                      }else{//Caso ja tenhamos mil contas no sitema
                                         printf("\n\nO total de contas abertas ja atingiu seu limite!\nCaso queira adicinar uma conta nova, exclua alguma ja existente.\n");
                                       }
                                         sair='0';
                                     break;
-                              case '2':
+                              case '2': //Caso a opção de exibir as contas ja existente seja chamada
                                         Exibir(conta);
                                         sair='0';
                                     break;
-                              case '3':
+                              case '3'://Chamada a alteração de uma conta ou cpf
                                       validarAlteracao(conta);
                                       sair='0';
                                     break;
-                              case '4':
+                              case '4'://Chamada a exclusão de um registro no sistema
                                       Excluir(conta,saques);
                                       sair='0';
                                     break;
-                              case '5':
+                              case '5'://Apenas sai do menu
                                     sair='0';
                                     break;
                               default:
@@ -181,10 +196,10 @@ int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
                             }
                         }while(sair!='0');
                   break;
-            case '2':
+            case '2'://Caso seja optado por fazer um saque
                       Saque(conta,saques,cedulas);
                   break;
-            case '3':
+            case '3'://Menu para gerar os relatorios
                   printf("\t\nMENU RELATORIO\n\n");
                   printf("1-Valores sacados\n2-Valor saldo existente\n3-Quantidade de cedulas existentes\n4-Voltar menu principal\n--> ");
                   sair = '1';
@@ -192,27 +207,27 @@ int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
                         __fpurge(stdin);
                         scanf("%c",&opcaoII);
                         switch(opcaoII){
-                          case '1':
-                                if(saques->saques[0][0]!=-1){
+                          case '1'://Opcao de valore sacas ate o momento
+                                if(saques->saques[0][0]!=-1){//Caso existe saques feitos no sistema chamamos a função de alteção
                                   Relatorio_Valor_Total_Sacado(conta,saques);
                                 }else{
                                   printf("\n\nNenhum saque feito ate o momento\n\n");
                                 }
                                 sair='0';
                                 break;
-                          case '2':
-                                  if(VALOR_TOTAL_CAIXA!=0){
+                          case '2'://Relatorio de saque existente
+                                  if(VALOR_TOTAL_CAIXA!=0){//So chamamos a função exista dinheiro no caixa
                                     Relatorio_Valor_Total_Caixa();
                                   }else{
                                     printf("\n\nCAIXA VAZIO!\n\n");
                                   }
                                   sair='0';
                                 break;
-                          case '3':
+                          case '3'://Relatorio das cedulas existentes no caixa
                                 sair='0';
                                   Relatorio_Valor_Total_Cedulas(cedulas);
                                 break;
-                          case '4':
+                          case '4'://Sai do sistema
                                 sair='0';
                                 break;
                           default:
@@ -252,6 +267,7 @@ char geraNumero() {
 //objetivo:insere pontuacoes '.' e '- ' em um cpf
 //parametros: cpf_origem:o cpf recebido no format 99999999999
 //            cpf_destino:o cpf com as pontuacoes inseridas no formato 999.999.999-99
+//Retorno:  nenhum
 void insere_pontuacao_cpf(char *cpfTemp,CONTA* conta) {
     int i=0, j;
 
@@ -309,7 +325,7 @@ void obtem_segundo_digito_verificador(char* cpf) {
      cpf[10] = digito+48;
 }
 //objetivo:gera aleatoriamente um numero de conta corrente no formato 999.999-X
-//parametros: Recebe o endereço de uma casa do registro 'CONTA'
+//parametros: Recebe o endereço de uma casa onde reside a variavel das contas
 //retorno:nenhum
 void geraContaCorrente(CONTA* conta) {
     int i,j;
@@ -331,7 +347,7 @@ void geraContaCorrente(CONTA* conta) {
       //Adicionamos o terminador de String no fim do conjunto
       conta->registroConta[9] = '\0';
 }
-//objetivo:gera aleatoriamente um cpf valido no formato 999.999.999-99
+//objetivo:gera aleatoriamente um cpf valido no formato 99999999999
 //parametros: cpf:o cpf onde sera armazenado o cpf valido
 //retorno: nenhum
 void gera_cpf_valido(char *cpf)
@@ -350,7 +366,7 @@ void gera_cpf_valido(char *cpf)
         }
         if(clone!=8){sair=0;}
         //Enquanto os ele gerar os 8 valores iguais o programa ficara em looping
-        //evitando que tenhamos um cpf com todos os valores iguais
+        //dificultando que tenhamos um cpf com todos os valores iguais
       }while(sair);
 }
 //objetivo:Mostrar os todos os dados de cpf e contas criados até o momento
@@ -376,7 +392,7 @@ int igualdadeCpf(CONTA *contas)
 {
   int i;
   if(totRegistros){
-      for(i=0;i<totRegistros;i++){
+      for(i=0;i<totRegistros;i++){//Apenas fazemos uma buscas comparando todas as strings ja cadastradas
         if(!strcmp(contas[totRegistros].registroCpf,contas[i].registroCpf)){
             return 0;
         }
@@ -391,7 +407,7 @@ int igualdadeConta(CONTA *contas)
 {
   int i;
   if(totRegistros){
-      for(i=0;i<totRegistros;i++){
+      for(i=0;i<totRegistros;i++){//Apenas fazemos uma buscas comparando todas as strings ja cadastradas
         if(!strcmp(contas[totRegistros].registroConta,contas[i].registroConta)){
             return 0;
         }
@@ -404,11 +420,11 @@ int igualdadeConta(CONTA *contas)
 //retorno: Retorna 1 se tudo ocorrer bem
 int validarAlteracao(CONTA* contas)
 {
-    int i=0,sair=1,cont;
+    int i=0,sair=1,cont;//Variaveis de controle
     char str[TAM_CONTA],//Recebera a conta digitada tanto para acessar o menu quanto para altera-lo
          CPF[TAM_CPF],//Recebera o CPF que sera alterado
          op;
-      if(totRegistros!=0)
+      if(totRegistros!=0)//Se existem registro poderemos fazer alterações
       {
           printf("\n\n              MENU DE ALTERACOES\n");
           printf("Informe sua conta atual no formato correto (999.999-X)\n");//Para alterar algum dado o cliente deve informar sua conta
@@ -416,7 +432,7 @@ int validarAlteracao(CONTA* contas)
           __fpurge(stdin);
           scanf ( "%9[^\n]", str);
           do{
-            if(!strcmp(str,contas[i].registroConta)){//Verificamos se a conta existe no sistema
+            if(!strcmp(str,contas[i].registroConta)){//Verificamos se a conta inserida acima existe no sistema
                 do{
                     printf("\nO que deseja alterar?\n1 - CONTA\n2 - CPF\n0 - CANCELAR\n--> ");
                     __fpurge(stdin);
@@ -426,7 +442,7 @@ int validarAlteracao(CONTA* contas)
                               printf("Insira a nova conta no formato correto (999.999-X)\n--> ");
                               __fpurge(stdin);
                               scanf ( "%9[^\n]", str);
-                              if (islower(str[8])){ str[8]=toupper(str[8]);}//Antes de passarmos a conta para a verificação deixamos a letra da conta Maiuscula
+                              if (islower(str[8])){ str[8]=toupper(str[8]);}//Antes de passarmos a conta para a verificação deixamos a letra da conta Maiuscula caso não seja
                                 if(checkConta(str,contas)){
                                     strcpy(contas[i].registroConta, str);//Se a funcao 'checkConta' retorna 1 nos trocamos o valor da conta
                                     printf("\n\nConta alterada com sucesso!\n\n");
@@ -602,22 +618,22 @@ int checkConta(char* conta,CONTA* contas)
   }
   return 1;
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Reajusta os indices da variavel que contem todos os saques no caixa apos uma exclusão
+//parametros:  A variavel com os saques registrados e o id da conta excluita
 //retorno: Sem retorno
 void Reajuste_Saques(SAQUES* saque,int id)
 {
     int i;
     for(i=0;i<totSaques;i++)
     {
-        if(saque->saques[i][0]>id)
+        if(saque->saques[i][0]>id)//Caso exista no na variavel um indice que seja maior que o id passado nos decrementamos este id
         {
           saque->saques[i][0]--;
         }
     }
 }
 //objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//parametros:  O registro com todas as contas, e a variavel com todos os saques
 //retorno: Sem retorno
 void Excluir(CONTA* contas,SAQUES* saque)
 {
@@ -633,12 +649,13 @@ void Excluir(CONTA* contas,SAQUES* saque)
         scanf ( "%9[^\n]", str);
             do{
                   if(!strcmp(str,contas[i].registroConta)){//Verificamos se a conta existe no sistema
-                      if(Vericador_Saques(saque,i)){
+                      if(Vericador_Saques(saque,i)){//Vericamos seja foram feitos saques na conta
                           if(i != totRegistros - 1)
                           {
-                            Reajuste_Saques(saque,i);
-//A exclusão sera feita com a troca de Variaveis, a conta que o cliente escolher sera jogada para a ultima posição do vetor, e conforme forem sendo add novas contas, as excluidas seram sobrepostas
-                              do{
+                            Reajuste_Saques(saque,i);//Reajustamos os indices na variavel de saque
+
+                              do{//A exclusão sera feita com a troca de Variaveis, a conta que o cliente escolher sera jogada para a
+                                  //ultima posição do vetor, e conforme forem sendo add novas contas, as excluidas seram sobrepostas
                                   if(i!=totRegistros)
                                   {
                                       aux = contas[i];
@@ -667,29 +684,30 @@ void Excluir(CONTA* contas,SAQUES* saque)
         printf("\n\nNao existe contas para serem excluidas\n\n");
       }
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Responsavel por fazer uma busca na variavel de saques em busca que alguma transição feita
+//parametros:  A variavel que armazena todos os saques e o id pelo qual ele deve procurar
 //retorno: Sem retorno
 int Vericador_Saques(SAQUES* saque,int id)
 {
   int i;
 
   for(i=0;i<totSaques;i++){
-    if(saque->saques[i][0]==id){
+    if(saque->saques[i][0]==id){//Caso exista um id na variavel compativel com o passado pelo sistema retornamos ZERO
       return 0;
     }
   }
   return 1;
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Faz as vericações e alteções nas variaveis necessarias para os saques
+//parametros:  O registro de contas cadastradas, a variavel com os saque e a variavel com as cedulas
 //retorno: Sem retorno
 void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
 {
-  int i=0,sair=1, elementos,j;
-  char str[TAM_CONTA],vSaque[7];//Recebera a conta digitada tanto para acessar o menu quanto para altera-lo
-  int valor;
-    if(totRegistros!=0)
+  int i=0,sair=1, elementos,j;//Variaveis de controle
+  char str[TAM_CONTA],//Recebera a conta digitada tanto para acessar o menu quanto para altera-lo
+        vSaque[7];//Receberá o valor de saque pelo usuario
+  int valor;//Auxiliara nas especificações do sistema
+    if(totRegistros!=0)//Caso existam registros
     {
         printf("\t\n\n               MENU DE SAQUE\n");
         printf("Informe a conta que sera efetuado o saque (999.999-X)\n");//Para alterar algum dado o cliente deve informar sua conta
@@ -699,20 +717,20 @@ void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
         do{
               if(!strcmp(str,contas[i].registroConta)){//Verificamos se a conta existe no sistema
                   printf("\nInforme o valor do saque\n--> ");
-                  if(VALOR_TOTAL_CAIXA!=0){
+                  if(VALOR_TOTAL_CAIXA!=0){//Caso tenhamos dinheiro caixa entramos
                         do{
                             iniciaVetores(vSaque);
 
                             __fpurge(stdin);
-                            scanf ( "%6[^\n]", vSaque);
+                            scanf ( "%6[^\n]", vSaque);//Leremos o valor de saque como String
 
-                            elementos = Cont_Elementos(vSaque);
-                            valor = Valor_Saque(vSaque,elementos);
+                            elementos = Cont_Elementos(vSaque);//Contamos os elementos do valor de saque
+                            valor = Valor_Saque(vSaque,elementos);//Transformamos os valores inseridos pelo usuario em formato de string para inteiro
 
                             for(j=0;j<strlen(vSaque);j++){
-                              if(!isdigit(vSaque[j])){
+                              if(!isdigit(vSaque[j])){//Verificamos se foram inseridos apenas digitos pelo usuario
                                 printf("O valor inserido é invado");
-                                valor = 0;
+                                valor = -1;//Caso não exista apenas digitos atribuimos menos 1 a variavel 'valor' o que ocorrera em falso no while abaixo
                               }
                             }
                             if(valor < 0){
@@ -720,16 +738,16 @@ void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
                              }else  if( valor > VALOR_TOTAL_CAIXA){
                                printf("\n\nValor alem do existente em caixa! Insira outro\n-->");
                              }
-                        }while(valor<0||valor>VALOR_TOTAL_CAIXA);
+                        }while(valor<0||valor>VALOR_TOTAL_CAIXA);//So saimos quando existir um valor compativel com o especificado
 
-                        if(valor!=0){
-                            Manipulador_cedulas(valor,cedulas);
-                            printf("\nSaque executado com sucesso! Valor do saque:\nR$ %d,00 ",valor);
-                              Extenso(vSaque,1);
-                              saque->saques[totSaques][0] = i;
-                              saque->saques[totSaques][1] = valor;
-                              VALOR_TOTAL_CAIXA-=valor;
-                              totSaques++;
+                        if(valor!=0){//Caso tudo tenha ocorrido bem acima e o valor seja diferente de zero fazemos o saque
+                            Manipulador_cedulas(valor,cedulas);//Mostramos as notas que seram entregues
+                            printf("\nSaque executado com sucesso! Valor do saque:\nR$ %d,00 ",valor);//Mostramos o valor solicitado
+                              Extenso(vSaque,1);//Mostramos o valor por extenso
+                              saque->saques[totSaques][0] = i;//Inserimos o Id que foi Responsavel pelo saque
+                              saque->saques[totSaques][1] = valor;//e o valor sacado pelo Id
+                              VALOR_TOTAL_CAIXA-=valor;//Decrementamos o valor sacado do Valor total presente no caixa
+                              totSaques++;//E por fim incrementamos a variavel global que tem a quantidades de saques registrados
                             printf("\n=============================================================\n");
                         }else{
                           printf("\n\nNenhum valor sacado! Operacao cancelada\n\n");
@@ -748,72 +766,75 @@ void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
         printf("\n\nSaque nao pode ser realizado ate que existe ao menos uma conta no sistema\n\n");
     }
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Quando chamado a finção ira mostrar  as notas entregues ao usuario e decrementar a quantia da variavel de cedulas
+//parametros:  O valor do saque e a variavel de cedulas
 //retorno: Sem retorno
 void Manipulador_cedulas(int valor,CEDULAS* cedulas)
 {
   int min,max,aux,j=0,qtd ;
-  int espelho[9] = {200,100,50,40,20,10,5,2,1};
+  int espelho[9] = {200,100,50,40,20,10,5,2,1};//Vetor que reflete o valor que cada uma das notas do sistema
   printf("\n\n=============================================================\n");
   printf("\n        SAIDA CEDULAS\n");
-      min = 100000,max = 1000000;
+      min = 100000,max = 1000000;//Variaveis que são responsaveis em ver o intervalo que o valor sacado esta
       do{
         aux = valor;
-          if(valor>=min && valor<max)
+          if(valor>=min && valor<max)//Verificamos o intervalo do valor
           {
               do{
-                valor-=min;
+                valor-=min;//Decrementamos do valor o min
               }while(valor>=min);
                   do{
                     qtd = 0;
+                    //Caso o valor de 'Aux' menos o valor da nota forem maiores que zero e existerem notas desse valor disponiveis no sistema entramos na condição
                       if(aux-espelho[j]>=0 && cedulas->C[j]!=0){
                         do{
-                          cedulas->C[j]--;
-                          qtd++;
-                          aux -= espelho[j];
-                        }while(cedulas->C[j] > 0 && aux>=espelho[j]);
-                        printf("%d nota(s) de %d\n",qtd,espelho[j]);
+                          cedulas->C[j]--;//Decrementamos uma unidade da cedula que sera entregue
+                          qtd++;//incrementamos a variavel de quantidade
+                          aux -= espelho[j];// Da variavel 'aux' decrementamos seu valor, com o valor da nota que foi entregue
+                        }while(cedulas->C[j] > 0 && aux>=espelho[j]);//E repetimos o processo ate que o numero de cedulas seja igual a zero ou ate que 'aux' seja menor que zero
+                        printf("%d nota(s) de %d\n",qtd,espelho[j]);//Imprimimos ao fim, a quantide de notas entre e seus respectivos valores
                       }
                       j++;
-                  }while(j<9);
+                  }while(j<9);//A verificação é feita para todas as notas
           }
-        min /= 10;
+        min /= 10;//Dividimos as variaveis 'min' e 'max', assim é verificado qualquer valor entre 0 e 1 milhão
         max /= 10;
-        if(j!=0){valor=0;}
+        if(j!=0){valor=0;}//Quando 'valor' é zerado saimos do laço
       }while(valor!=0);
   printf("\n=============================================================\n");
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
-//retorno: Sem retorno
+//objetivo: Função que busca na variavel de saque um Id igual a passado como parametro para ele
+//parametros:  O id que sera procurado, a variavel com os saques, e uma variavel contadora
+//retorno: retorna Zero caso ele ache um id igual ao  outro e um caso não
 int Busca(int key,int *Ids,int cont)
 {
   int i=0;
     do{
-        if(key==Ids[i]){
+        if(key==Ids[i]){//Busca na variavel de saque um Id igual ao passado
           return 0;
         }
         i++;
     }while(i<cont);
     return 1;
 }
-
+//objetivo: Gera o relatorio de todos saques feitos separados e individualmente separados por casa conta
+//parametros: O registro com todas as contas e a variavel com todos os saques
+//retorno: sem retorno
 void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque)
 {
-    char valor[7];
+    char valor[7];//Recebe o valor de saque quando for chamado a função  'Extenso'
     int i,j=1,
         id,soma,geralSoma=0,contadorIds=1,trocaExtrato;
-    int Ids[TAM_RESGISTRO];
+    int Ids[TAM_RESGISTRO];//Este vetor receberá todos os ids que tiveram saques feitos, porem não haverá nenhum repetido
 
-    Ids[0] = saque->saques[0][0];
+    Ids[0] = saque->saques[0][0];//Colocamos o primeiro id registrado como um chute inicial
 
-    for(i=0;i<totSaques;i++){
+    for(i=0;i<totSaques;i++){//Fazemos uma busca no sistema por Ids, passando Id por Id da variavel de saques, para a função 'Busca'
         if(Busca(saque->saques[i][0],Ids,contadorIds))
         {
-            Ids[j] = saque->saques[i][0];
-            contadorIds++;
-            j++;
+            Ids[j] = saque->saques[i][0]; //Caso não exista nenhum igual atribumos o valor para o vetor 'Ids' numa posição j
+            contadorIds++;//Incrementamos esse variavel para que o sistema saiba que o vetor 'Ids' creceu e ele tem que verificar na proxima chamada de 0 ate  'contadorIds'
+            j++;//Incrementamos 'j'
         }
     }
     printf("\n\n---------------------------------------------------------------------------------------\n");
@@ -821,44 +842,44 @@ void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque)
     printf("\n---------------------------------------------------------------------------------------\n");
     i=0;
     do{
-      id = Ids[i];
+      id = Ids[i];//Vamor imprimir os saques por id
       soma = 0;
       j=0;
-      trocaExtrato = 0;
+      trocaExtrato = 0;//Esta variavel ira auxiliar no tipo de printf que seja imprimido no laço abaixo
 
-          printf("Conta corrente: %s ___ CPF: %s  ",contas[id].registroConta,contas[id].registroCpf);
+          printf("Conta corrente: %s ___ CPF: %s  ",contas[id].registroConta,contas[id].registroCpf);//O algoritmo busca no sistema a conta registrada com o respectivo id passado
               do{
-                  if(trocaExtrato){
-                      if(id==saque->saques[j][0]){
+                  if(trocaExtrato){//Se 'trocaExtrato' for diferente de zero sera imprimido o valor do saque em um printf com mais espaços
+                      if(id==saque->saques[j][0]){//Varremos o vetor de saque em busca dos Ids iguais ao registrado
                         printf("                                                      R$ %d,00\n",saque->saques[j][1]);
-                        soma += saque->saques[j][1];
+                        soma += saque->saques[j][1];//Somamos os valores no imprimidos a esta variavel de soma para apresentar o valor total sacado por um cliente mais abaixo
                       }
-                    }else{
+                    }else{//Caso seja o primeiro valor mostrado pelo sistema tera um printf com menos espaços
                         if(id==saque->saques[j][0]){
                           printf("   R$ %d,00\n",saque->saques[j][1]);
                           soma += saque->saques[j][1];
-                          trocaExtrato = 1;
+                          trocaExtrato = 1;//Agora caso se tenha mais saques registrados eles seram imprimos em um printf com mais espaços
                         }
                     }
                 j++;
-              }while(j<totSaques);
+              }while(j<totSaques);//Depois de imprimimos todos os saques de forma individual, mostramos a soma total daquele dado usuario
               printf("                                                                Total: R$ %d,00\n\n",soma);
         i++;
-        geralSoma += soma;
+        geralSoma += soma;//Essa variavel recebe a soma de total de todas as contas que ja fizeram saques
     }while(i<contadorIds);
     printf("---------------------------------------------------------------------------------------\n");
     printf("Valor total geral: R$ %d,00  ",geralSoma);
-    iniciaVetores(valor);
-    sprintf(valor, "%i", geralSoma);
-    Extenso(valor,1);
+    iniciaVetores(valor);//Iniciamos o a string  'valor'
+    sprintf(valor, "%i", geralSoma);//Passamos o valor inteiro do 'geralSoma' para um string
+    Extenso(valor,1);//Imprimimos a soma de todas as contas por Extenso
     printf("\n---------------------------------------------------------------------------------------\n");
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Mostra o valor presente no caixa em decimal e por Extenso
+//parametros: Nenhum
 //retorno: Sem retorno
 void Relatorio_Valor_Total_Caixa()
 {
-  char valor[7];
+  char valor[7];//Vetor que recebe o valor total do caixa em forma de string
 
   printf("\n\n---------------------------------------------------------------------------------------\n");
   printf("Relatorio 'Valores do saldo existente'");
@@ -870,8 +891,8 @@ void Relatorio_Valor_Total_Caixa()
 
   printf("\n---------------------------------------------------------------------------------------\n\n");
 }
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
+//objetivo: Relatorio dos valor de notas presentes no sistema
+//parametros:  A variavel com todas as cedulas
 //retorno: Sem retorno
 void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
 {
@@ -883,9 +904,9 @@ void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
     printf("\n---------------------------------------------------------------------------------------\n");
     printf("                     QUANTIDADE DE CADA CEDULA\n\n");
     for(i=0;i<TIPOS_CEDULAS;i++){
-        printf("Cedula de %4d ---->  %4d        ",espelho[i],cedulas->C[i]);
+        printf("Cedula de %4d ---->  %4d        ",espelho[i],cedulas->C[i]);//Imprimimos o valor da nota e sua Quantidade
         value = cedulas->C[i];
-        sprintf(valor, "%i", value);
+        sprintf(valor, "%i", value);//Passamos o valor para string e o apresentamos em seguida
         Extenso(valor,0);
         printf("\n");
     }
@@ -893,9 +914,9 @@ void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
   printf("\n---------------------------------------------------------------------------------------\n\n");
 }
 
-//objetivo: Excluir uma conta conta do sistema
-//parametros:  O registro com todas as contas
-//retorno: Sem retorno
+//objetivo: Conta quantos elementos tem uma string
+//parametros:  Uma string
+//retorno: Retona a quantidade de elementos
 int Cont_Elementos(char* valor)
 {
     int elementos=0,i;
@@ -905,12 +926,14 @@ int Cont_Elementos(char* valor)
     }
     return (elementos);
 }
-
+//objetivo: Passa o valor de que uma String para inteiro
+//parametros:  Uma string
+//retorno: Retona o valor em forma de inteiro
 int Valor_Saque(char* valor, int elementos)
 {
   int soma=0,i,multiplo;
 
-  switch (elementos) {
+  switch (elementos) {//Ve qual o tamanho de algarismos do numero passado
     case 6:
           multiplo = 100000;
           break;
@@ -932,17 +955,19 @@ int Valor_Saque(char* valor, int elementos)
   }
 
     for(i=0;i<elementos;i++)
-    {
+    {//Usa algarismo a algarismo fazendo somas e divisões sucetivas para obter o valor
       soma += (valor[i]-48)*multiplo;
       multiplo /= 10;
     }
     return soma;
 }
-
+//objetivo: Quando chamado imprime o valor de um numero em extenso
+//parametros:  Uma variavel com o valor e um valor (0 ou  1) que indentifica se esta sendo solicitado o extenso de dinheiro ou de cedulas
+//retorno: sem retorno
 void Extenso(char* valor,int DinheiroOuCedula)
 {
   int valorSaque,dig,elementos,i=0;
-
+    /*Valor que podem ser impressos*/
   char UM_NOVE[9][9] = {{"UM"},{"DOIS"},{"TRES"},{"QUATRO"},{"CINCO"},{"SEIS"},{"SETE"},{"OITO"},{"NOVE"}};
   char C_UM_NOVE[9][9] = {{"UMA"},{"DUAS"},{"TRES"},{"QUATRO"},{"CINCO"},{"SEIS"},{"SETE"},{"OITO"},{"NOVE"}};
 
@@ -954,16 +979,30 @@ void Extenso(char* valor,int DinheiroOuCedula)
   char C_CEM_NOVECENTOS[9][15] = {{"CENTO"},{"DUZENTAS"},{"TREZENTAS"},{"QUATROCENTAS"},{"QUINHETAS"},{"SEISCENTAS"},{"SETECENTAS"},{"OITOCENTAS"},{"NOVECENTAS"}};
 
   char CONECTIVOS[7][11] = {{"CENTO"},{" E "},{" MIL "},{"REAIS"},{"CEDULAS"},{"REAL"},{"CEDULA"}};
+
   printf("( ");
-  elementos = Cont_Elementos(valor);
-  valorSaque = Valor_Saque(valor,elementos);
-  if(valorSaque){
+  elementos = Cont_Elementos(valor);//Contamos quantos elementos tem o valor
+  valorSaque = Valor_Saque(valor,elementos);//Depois obtemos  o inteiro deste valor
+/*
+  A logica toda toda por tras do codigo abaixo é simples:
+
+    Supondo que o valor passado pela string seja 45812, no vetor ele esta da seguinte forma: |'4'|'5'|'8'|'1'|'2'|'\0'|'\0'| (Ja que todo vetor passado para cá tem 7 posições)
+  Como acima foram pegos a quantidade de elementos e o valor de saque por inteiro, ele sabera qua na primeira interação para este valor ele devera entrar no case 5 do switch abaixo
+  então ele verifica se o valor inteiro dividido por 10 mil esta entre 1 e 2, se estiver significa que só pode ser um valor entre 11 e 19 mil, nesse caso o teste dará falso,
+  então seu proximo passo é verificar se o numero tem um valor que seja inteiro como: 10 mil reias, 20 mil reais etc. neste tambem dará falso então é verficado se o valor é do tipo
+  45 mil e alguma coisa ou 40 Mil e alguma coisa, em nosso caso dara a primeira opção, então ele pega o valor do numero na casa, neste caso seria valor[0], multiplica ele por 10 mil
+  e em seguida decrementa ele do valor inicial e no fim ele decrementa o numero de elementos e troca as proximas posições que serão verificadas no vetor.
+
+    A curto modo é basicamente isso, que ele faz até sair do laço, existe alem desse testes sitados, teste para saber se o sistema que gramatica para as cedulas ou para o  dinheiro
+  ja que existe umas pequenas variações e isto é checado em varias partes do algoritmo com operadores ternarios
+*/
+  if(valorSaque){//Se o valor for diferente de ZERO entramos no laço
       do{
           switch (elementos) {
-            case 6:
+            case 6://Caso o valor tenha seis elementos significa que ele é maior ou igual a 100 mil
                       if(valorSaque/100000.00 == 1.00)
                       {
-                        printf("CEM MIL %s", DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                        printf("CEM MIL %s", DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);//Teste que verifica foi solicitado dinheiro ou cedula
                         elementos=0;
                       }
                       else if( valor[1] != '0' || valor[2] != '0')
@@ -975,8 +1014,9 @@ void Extenso(char* valor,int DinheiroOuCedula)
                       }
                       valorSaque -= 100000;
                   break;
-            case 5:
+            case 5://Caso o valor tenha cinco elementos significa que ele é maior ou igual a 10 mil
                     if(valorSaque/10000>0){
+                        //Verifica valores entre 11 e 19  MIL
                         if(valorSaque/10000.00>1 && valorSaque/10000.00<2)
                         {
                           if(valorSaque/1000.00 == (float)(valor[i+1]-48)+10 )
@@ -989,7 +1029,7 @@ void Extenso(char* valor,int DinheiroOuCedula)
                             valorSaque -= (10000 + 1000*(valor[i+1]-48));
                           }
                         }
-
+                        //Verifica valores entre 10 e 90  MIL
                         else  if(valorSaque/10000.00==(float)valor[i]-48)
                         {
                           printf("%s MIL %s",DEZ_NOVENTA[(valor[i]-48)-1], DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
@@ -1076,8 +1116,9 @@ void Extenso(char* valor,int DinheiroOuCedula)
           elementos--;
           i++;
       }while(elementos>0);
-    }else{
+    }else{//Caso o valor passo sera zero
       printf(" ZERADO ");
     }
   printf(" )");
 }
+/*---------------------------------------------------------------------------------THE END----------------------------------------------------------------------------------------------*/
