@@ -30,7 +30,7 @@ struct Cedulas{
 typedef struct Cedulas CEDULAS;
 
 struct Saques{
-  short int saques[ID_SAQUE_LIN][ID_SAQUE_COL];
+   int saques[ID_SAQUE_LIN][ID_SAQUE_COL];
 };
 typedef struct Saques SAQUES;
 
@@ -38,7 +38,8 @@ typedef struct Saques SAQUES;
 
 
 /*-----------------------Cabeçalhos das funções---------------------------------------*/
-void iniciarSistema(CONTA *conta,CEDULAS* cedulas);
+void iniciarSistema(CONTA *conta,CEDULAS* cedulas,SAQUES* saque);
+void iniciaVetores(char * valor);
 int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas);
 void Exibir(CONTA *contas);
 char geraAlfabeto();
@@ -54,6 +55,7 @@ int validarAlteracao(CONTA* contas);
 int checkCPF(char* conta,CONTA* contas);
 int verifica_cpf_valido(char* cpf);
 int checkConta(char* conta,CONTA* contas);
+void Reajuste_Saques(SAQUES* saque,int id);
 void Excluir(CONTA* contas,SAQUES* saque);
 int Vericador_Saques(SAQUES* saque,int id);
 void Saque(CONTA* conta,SAQUES* saque,CEDULAS* cedulas );
@@ -62,7 +64,9 @@ int Busca(int key,int *Ids,int cont);
 void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque);
 void Relatorio_Valor_Total_Caixa();
 void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas);
-void Extenso(int* valor,int DinheiroOuCedula);
+int Cont_Elementos(char* valor);
+int Valor_Saque(char* valor, int elementos);
+void Extenso(char* valor,int DinheiroOuCedula);
 /*------------------------------------------------------------------------------------*/
 
 int main(){
@@ -74,14 +78,14 @@ int main(){
     SAQUES saques;
     CEDULAS cedulas;
 
-    iniciarSistema(conta,&cedulas);
+    iniciarSistema(conta,&cedulas,&saques);
     do{op=menu(conta,cpfTemporario,&saques,&cedulas);}while(op);
     return 0;
 }
 //objetivo: Iniciamos o sitema, zerando as matrizes dos cpf's e das contas, e abastecemos o caixa
 //parametros: Vetor que contem todos os registros de CPF e Conta
 //retorno: Sem retorno
-void iniciarSistema(CONTA *conta,CEDULAS* cedulas)
+void iniciarSistema(CONTA *conta,CEDULAS* cedulas,SAQUES* saque)
 {
     short int i,j;
     totRegistros = 0;
@@ -95,6 +99,9 @@ void iniciarSistema(CONTA *conta,CEDULAS* cedulas)
             }
         }
     }
+    for(i=0;i<ID_SAQUE_LIN;i++){
+      saque->saques[i][0] = -1;
+    }
     cedulas->C[0] = 100;
     cedulas->C[1] = 200;
     cedulas->C[2] = 400;
@@ -105,6 +112,15 @@ void iniciarSistema(CONTA *conta,CEDULAS* cedulas)
     cedulas->C[7] = 1500;
     cedulas->C[8] = 2000;
     VALOR_TOTAL_CAIXA = 108000;
+}
+
+void iniciaVetores(char * valor)
+{
+  int i;
+  for(i=0;i<8;i++)
+  {
+    valor[i] = '\0';
+  }
 }
 //objetivo: Fazera a função de guiar o usuario pelo sistema e fazera a chamada as funções
 //parametros: recebe 2: A estrutura onde sera armazenado todos os CPF's e Contas e um vetor para os cpf sem formatação
@@ -166,7 +182,7 @@ int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
                         }while(sair!='0');
                   break;
             case '2':
-                  Saque(conta,saques,cedulas);
+                      Saque(conta,saques,cedulas);
                   break;
             case '3':
                   printf("\t\nMENU RELATORIO\n\n");
@@ -177,10 +193,10 @@ int menu(CONTA* conta, char * cpfTemporario,SAQUES* saques,CEDULAS* cedulas)
                         scanf("%c",&opcaoII);
                         switch(opcaoII){
                           case '1':
-                                if(totRegistros!=0){
+                                if(saques->saques[0][0]!=-1){
                                   Relatorio_Valor_Total_Sacado(conta,saques);
                                 }else{
-                                  printf("\n\nCaixa sem cadastros! Nao existe relatorio que possa ser gerado\n\n");
+                                  printf("\n\nNenhum saque feito ate o momento\n\n");
                                 }
                                 sair='0';
                                 break;
@@ -589,6 +605,20 @@ int checkConta(char* conta,CONTA* contas)
 //objetivo: Excluir uma conta conta do sistema
 //parametros:  O registro com todas as contas
 //retorno: Sem retorno
+void Reajuste_Saques(SAQUES* saque,int id)
+{
+    int i;
+    for(i=0;i<totSaques;i++)
+    {
+        if(saque->saques[i][0]>id)
+        {
+          saque->saques[i][0]--;
+        }
+    }
+}
+//objetivo: Excluir uma conta conta do sistema
+//parametros:  O registro com todas as contas
+//retorno: Sem retorno
 void Excluir(CONTA* contas,SAQUES* saque)
 {
   int i=0,sair=1;
@@ -606,6 +636,7 @@ void Excluir(CONTA* contas,SAQUES* saque)
                       if(Vericador_Saques(saque,i)){
                           if(i != totRegistros - 1)
                           {
+                            Reajuste_Saques(saque,i);
 //A exclusão sera feita com a troca de Variaveis, a conta que o cliente escolher sera jogada para a ultima posição do vetor, e conforme forem sendo add novas contas, as excluidas seram sobrepostas
                               do{
                                   if(i!=totRegistros)
@@ -655,9 +686,9 @@ int Vericador_Saques(SAQUES* saque,int id)
 //retorno: Sem retorno
 void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
 {
-  int i=0,sair=1;
-  char str[TAM_CONTA];//Recebera a conta digitada tanto para acessar o menu quanto para altera-lo
-  int valorSaque;
+  int i=0,sair=1, elementos,j;
+  char str[TAM_CONTA],vSaque[7];//Recebera a conta digitada tanto para acessar o menu quanto para altera-lo
+  int valor;
     if(totRegistros!=0)
     {
         printf("\t\n\n               MENU DE SAQUE\n");
@@ -670,19 +701,36 @@ void Saque(CONTA* contas,SAQUES* saque,CEDULAS* cedulas )
                   printf("\nInforme o valor do saque\n--> ");
                   if(VALOR_TOTAL_CAIXA!=0){
                         do{
-                            scanf("%d",&valorSaque);
-                            if(valorSaque < 0 || valorSaque > VALOR_TOTAL_CAIXA){
-                               printf("\n\nValor inserido invalido\n-->");}
-                        }while(valorSaque<0||valorSaque>VALOR_TOTAL_CAIXA);
+                            iniciaVetores(vSaque);
 
-                        if(valorSaque!=0){
-                            Manipulador_cedulas(valorSaque,cedulas);
-                            printf("\nSaque executado com sucesso! Valor do saque:\nR$ %d,00 ",valorSaque);
-                            Extenso(&valorSaque,1);
-                            saque->saques[totSaques][0] = i;
-                            saque->saques[totSaques][1] = valorSaque;
-                            VALOR_TOTAL_CAIXA-=valorSaque;
-                            totSaques++;
+                            __fpurge(stdin);
+                            scanf ( "%6[^\n]", vSaque);
+
+                            elementos = Cont_Elementos(vSaque);
+                            valor = Valor_Saque(vSaque,elementos);
+
+                            for(j=0;j<strlen(vSaque);j++){
+                              if(!isdigit(vSaque[j])){
+                                printf("O valor inserido é invado");
+                                valor = 0;
+                              }
+                            }
+                            if(valor < 0){
+                               printf("\n\nValor inserido invalido\n-->");
+                             }else  if( valor > VALOR_TOTAL_CAIXA){
+                               printf("\n\nValor alem do existente em caixa! Insira outro\n-->");
+                             }
+                        }while(valor<0||valor>VALOR_TOTAL_CAIXA);
+
+                        if(valor!=0){
+                            Manipulador_cedulas(valor,cedulas);
+                            printf("\nSaque executado com sucesso! Valor do saque:\nR$ %d,00 ",valor);
+                              Extenso(vSaque,1);
+                              saque->saques[totSaques][0] = i;
+                              saque->saques[totSaques][1] = valor;
+                              VALOR_TOTAL_CAIXA-=valor;
+                              totSaques++;
+                            printf("\n=============================================================\n");
                         }else{
                           printf("\n\nNenhum valor sacado! Operacao cancelada\n\n");
                         }
@@ -753,8 +801,9 @@ int Busca(int key,int *Ids,int cont)
 
 void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque)
 {
+    char valor[7];
     int i,j=1,
-        id,soma,geralSoma,contadorIds=1,trocaExtrato;
+        id,soma,geralSoma=0,contadorIds=1,trocaExtrato;
     int Ids[TAM_RESGISTRO];
 
     Ids[0] = saque->saques[0][0];
@@ -799,7 +848,9 @@ void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque)
     }while(i<contadorIds);
     printf("---------------------------------------------------------------------------------------\n");
     printf("Valor total geral: R$ %d,00  ",geralSoma);
-    Extenso(&geralSoma,1);
+    iniciaVetores(valor);
+    sprintf(valor, "%i", geralSoma);
+    Extenso(valor,1);
     printf("\n---------------------------------------------------------------------------------------\n");
 }
 //objetivo: Excluir uma conta conta do sistema
@@ -807,11 +858,15 @@ void Relatorio_Valor_Total_Sacado(CONTA* contas,SAQUES* saque)
 //retorno: Sem retorno
 void Relatorio_Valor_Total_Caixa()
 {
+  char valor[7];
+
   printf("\n\n---------------------------------------------------------------------------------------\n");
   printf("Relatorio 'Valores do saldo existente'");
   printf("\n---------------------------------------------------------------------------------------\n");
   printf("Total em caixa: R$ %d,00  ",VALOR_TOTAL_CAIXA);
-  Extenso(&VALOR_TOTAL_CAIXA,1);
+  iniciaVetores(valor);
+  sprintf(valor, "%i", VALOR_TOTAL_CAIXA);
+  Extenso(valor,1);
 
   printf("\n---------------------------------------------------------------------------------------\n\n");
 }
@@ -821,6 +876,8 @@ void Relatorio_Valor_Total_Caixa()
 void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
 {
   int espelho[9] = {200,100,50,40,20,10,5,2,1}, i,value;
+  char valor[7];
+    iniciaVetores(valor);
     printf("\n\n---------------------------------------------------------------------------------------\n");
     printf("Relatorio 'Quantidade de cedulas existentes'");
     printf("\n---------------------------------------------------------------------------------------\n");
@@ -828,7 +885,8 @@ void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
     for(i=0;i<TIPOS_CEDULAS;i++){
         printf("Cedula de %4d ---->  %4d        ",espelho[i],cedulas->C[i]);
         value = cedulas->C[i];
-        Extenso(&value,0);
+        sprintf(valor, "%i", value);
+        Extenso(valor,0);
         printf("\n");
     }
 
@@ -838,87 +896,188 @@ void Relatorio_Valor_Total_Cedulas(CEDULAS* cedulas)
 //objetivo: Excluir uma conta conta do sistema
 //parametros:  O registro com todas as contas
 //retorno: Sem retorno
-void Extenso(int* valor,int DinheiroOuCedula)
+int Cont_Elementos(char* valor)
 {
-  int valorSaque = *valor,dig,min,max,concordancia=1,onze_dezenove=0;
+    int elementos=0,i;
+    for(i=0;i<strlen(valor);i++)
+    {
+      elementos++;
+    }
+    return (elementos);
+}
+
+int Valor_Saque(char* valor, int elementos)
+{
+  int soma=0,i,multiplo;
+
+  switch (elementos) {
+    case 6:
+          multiplo = 100000;
+          break;
+    case 5:
+          multiplo = 10000;
+          break;
+    case 4:
+          multiplo = 1000;
+          break;
+    case 3:
+          multiplo = 100;
+          break;
+    case 2:
+          multiplo = 10;
+          break;
+    case 1:
+          multiplo = 1;
+          break;
+  }
+
+    for(i=0;i<elementos;i++)
+    {
+      soma += (valor[i]-48)*multiplo;
+      multiplo /= 10;
+    }
+    return soma;
+}
+
+void Extenso(char* valor,int DinheiroOuCedula)
+{
+  int valorSaque,dig,elementos,i=0;
 
   char UM_NOVE[9][9] = {{"UM"},{"DOIS"},{"TRES"},{"QUATRO"},{"CINCO"},{"SEIS"},{"SETE"},{"OITO"},{"NOVE"}};
+  char C_UM_NOVE[9][9] = {{"UMA"},{"DUAS"},{"TRES"},{"QUATRO"},{"CINCO"},{"SEIS"},{"SETE"},{"OITO"},{"NOVE"}};
+
   char ONZE_DEZENOVE[9][15] = {{"ONZE"},{"DOZE"},{"TREZE"},{"QUATORZE"},{"QUINZE"},{"DEZESSEIS"},{"DEZESSETE"},{"DEZOITO"},{"DEZENOVE"}};
+
   char DEZ_NOVENTA[9][15] = {{"DEZ"},{"VINTE"},{"TRINTA"},{"QUARENTA"},{"CINQUENTA"},{"SESSENTA"},{"SETENTA"},{"OITENTA"},{"NOVENTA"}};
+
   char CEM_NOVECENTOS[9][15] = {{"CENTO"},{"DUZENTOS"},{"TREZENTOS"},{"QUATROCENTOS"},{"QUINHETOS"},{"SEISCENTOS"},{"SETECENTOS"},{"OITOCENTOS"},{"NOVECENTOS"}};
-  char CONECTIVOS[5][11] = {{"CENTO"},{" E "},{" MIL "},{" REAIS "},{" CEDULAS "}};
+  char C_CEM_NOVECENTOS[9][15] = {{"CENTO"},{"DUZENTAS"},{"TREZENTAS"},{"QUATROCENTAS"},{"QUINHETAS"},{"SEISCENTAS"},{"SETECENTAS"},{"OITOCENTAS"},{"NOVECENTAS"}};
 
-  min = 100000,max = 1000000;
-  if(valorSaque==1){concordancia=0;};
+  char CONECTIVOS[7][11] = {{"CENTO"},{" E "},{" MIL "},{"REAIS"},{"CEDULAS"},{"REAL"},{"CEDULA"}};
   printf("( ");
-  do{
-    if(valorSaque>=11 && valorSaque<20){onze_dezenove=1;}
-    if(valorSaque>=min && valorSaque<max)
-    {
-      dig = 0;
+  elementos = Cont_Elementos(valor);
+  valorSaque = Valor_Saque(valor,elementos);
+  if(valorSaque){
       do{
-        valorSaque-=min;
-          dig++;
-      }while(valorSaque>=min);
-        if(min>=100000){
-            if(valorSaque==0){
-              printf("CEM MIL REAIS");
-            }else{
-              printf("%s%s",CONECTIVOS[0],CONECTIVOS[1]);
-            }
-          }else
-              if(valorSaque>=1000 && valorSaque<10000){
-                printf("%s",ONZE_DEZENOVE[(valorSaque/1000)-dig]);
-                valorSaque -= (valorSaque/1000) * 1000;
-                valorSaque != 0 ? printf("%s%s",CONECTIVOS[2],CONECTIVOS[1]) : printf("%s%s",CONECTIVOS[2],CONECTIVOS[3]);
+          switch (elementos) {
+            case 6:
+                      if(valorSaque/100000.00 == 1.00)
+                      {
+                        printf("CEM MIL %s", DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                        elementos=0;
+                      }
+                      else if( valor[1] != '0' || valor[2] != '0')
+                            {
+                              printf("CENTO E ");
+                            }
+                      else{
+                              printf("CEM MIL E ");
+                      }
+                      valorSaque -= 100000;
+                  break;
+            case 5:
+                    if(valorSaque/10000>0){
+                        if(valorSaque/10000.00>1 && valorSaque/10000.00<2)
+                        {
+                          if(valorSaque/1000.00 == (float)(valor[i+1]-48)+10 )
+                          {
+                            printf("%s MIL %s",ONZE_DEZENOVE[(valor[i+1]-48)-1], DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                            elementos=0;
+                            valorSaque -= 10000 + 1000*(valor[i+1]-48);
+                          }else{
+                            printf("%s MIL E ",ONZE_DEZENOVE[(valor[i+1]-48)-1]);
+                            valorSaque -= (10000 + 1000*(valor[i+1]-48));
+                          }
+                        }
 
-        }else
-            if(min>=10000){
-              if(valorSaque>=1000){
-                printf("%s",DEZ_NOVENTA[dig-1]);
-                valorSaque != 0 ? printf("%s",CONECTIVOS[1]) : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-              }else
-                  if(valorSaque==0){
-                      printf("%s MIL REAIS",DEZ_NOVENTA[dig-1]);
-                  }else{
-                      printf("%s%s",DEZ_NOVENTA[dig-1],CONECTIVOS[2]);
-                  }
-        }else
-            if(min>=1000){
-                if(valorSaque>0 && valorSaque<100)
-                {
-                  printf("%s%s",UM_NOVE[dig-1],CONECTIVOS[2]);
-                  valorSaque != 0 ? printf("%s",CONECTIVOS[1]) : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-                }else{
-                  printf("%s%s",UM_NOVE[dig-1], CONECTIVOS[2]);
-                  valorSaque != 0 ? printf(" ") : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-                }
-        }else
-            if(min>=100){
-              if(dig==1&&valorSaque==0){
-                printf("CEM %s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-              }else{
-                printf("%s",CEM_NOVECENTOS[dig-1]);
-                valorSaque != 0 ? printf("%s",CONECTIVOS[1]) : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-              }
-        }else
-            if(valorSaque>=1 && valorSaque<10 && onze_dezenove){
-              printf("%s",ONZE_DEZENOVE[valorSaque-dig]);
-              valorSaque = 0;
-              valorSaque != 0 ? printf(" ") : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-        }else
-            if(min>=10){
-              printf("%s",DEZ_NOVENTA[dig-1]);
-              valorSaque != 0 ? printf("%s",CONECTIVOS[1]) : printf("%s",DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-        }else
-            if(min>=1&&concordancia){
-              printf("%s%s",UM_NOVE[dig-1],DinheiroOuCedula ? CONECTIVOS[3]:CONECTIVOS[4]);
-            }else{
-              printf("UM REAL");
-            }
+                        else  if(valorSaque/10000.00==(float)valor[i]-48)
+                        {
+                          printf("%s MIL %s",DEZ_NOVENTA[(valor[i]-48)-1], DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                          valorSaque -= 10000 * (valor[i]-48);
+                        }
+                        else if( valor[i+1] == '0')
+                              {
+                                printf("%s MIL E ",DEZ_NOVENTA[(valor[i]-48)-1]);
+                                valorSaque -= 10000 * (valor[i]-48);
+                              }
+                        else if( valor[i] != '0'){
+                                printf("%s E ",DEZ_NOVENTA[(valor[i]-48)-1]);
+                                valorSaque -= 10000 * (valor[i]-48);
+                        }
+                    }
+                  break;
+            case 4:
+                    if(valorSaque/1000>0){
+                        if(valorSaque/1000.00==(float)valor[i]-48)
+                        {
+                          printf("%s MIL %s",DinheiroOuCedula ? UM_NOVE[(valor[i]-48)-1]:C_UM_NOVE[(valor[i]-48)-1],
+                                             DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                          valorSaque -= 1000 * (valor[i]-48);
+                        }
+                        else if(valorSaque/1000>0){
+                          printf("%s MIL E ",DinheiroOuCedula ? UM_NOVE[(valor[i]-48)-1]:C_UM_NOVE[(valor[i]-48)-1]);
+                          valorSaque -= 1000 * (valor[i]-48);
+                        }
+                    }
+                  break;
+            case 3:
+                    if(valorSaque/100>0){
+                        if(valorSaque/100.00==1.00)
+                        {
+                          printf("CEM %s",DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                          valorSaque -= 100 * (valor[i]-48);
+                        }
+                        else if(valorSaque/100.00== (float)(valor[i]-48))
+                        {
+                          printf("%s %s",DinheiroOuCedula ? CEM_NOVECENTOS[(valor[i]-48)-1] : C_CEM_NOVECENTOS[(valor[i]-48)-1],
+                                         DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                          valorSaque -= 100 * (valor[i]-48);
+                        }
+                        else if(valorSaque/100>0){
+                          printf("%s E ",DinheiroOuCedula ? CEM_NOVECENTOS[(valor[i]-48)-1] : C_CEM_NOVECENTOS[(valor[i]-48)-1]);
+                          valorSaque -= 100 * (valor[i]-48);
+                        }
+                    }
+                  break;
+            case 2:
+                    if(valorSaque/10>0){
+                        if(valorSaque/10.00>1 && valorSaque/10.00<2)
+                        {
+                            printf("%s %s",ONZE_DEZENOVE[(valor[i+1]-48)-1], DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                            elementos=0;
+                        }
+                        else  if(valorSaque/10.00 == (float)(valor[i]-48))
+                        {
+                          printf("%s %s",DEZ_NOVENTA[(valor[i]-48)-1],DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                        }
+                        else if(valorSaque/10>0)
+                        {
+                          printf("%s E ",DEZ_NOVENTA[(valor[i]-48)-1]);
+                          valorSaque -= 100* (valor[i]-48);
+                        }
+                    }
+                  break;
+            case 1:
+                        if(!i && valor[i]-48 == 1){
+                            printf("%s %s",DinheiroOuCedula?UM_NOVE[(valor[i]-48)-1]:C_UM_NOVE[(valor[i]-48)-1],
+                                            DinheiroOuCedula ? CONECTIVOS[5] : CONECTIVOS[6]);
+                        }else{
+                          printf("%s %s",DinheiroOuCedula?UM_NOVE[(valor[i]-48)-1]:C_UM_NOVE[(valor[i]-48)-1],
+                                          DinheiroOuCedula ? CONECTIVOS[3] : CONECTIVOS[4]);
+                          elementos=0;
+                        }
+                  break;
+          }
+          elementos--;
+          i++;
+      }while(elementos>0);
+    }else{
+      printf(" ZERADO ");
     }
-    min /= 10;
-    max /= 10;
-  }while(valorSaque!=0);
   printf(" )");
 }
