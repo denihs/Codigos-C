@@ -1,0 +1,7 @@
+----- Permição para o terminal executar o compile.sh:
+
+$ sudo chmod +x compile.sh
+
+------ Executar o compile.sh:
+
+$ sh compile.sh

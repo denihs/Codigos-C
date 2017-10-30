@@ -1,28 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#define TAM 50
+#include "carro/carro.h"
 
 int total_carros; //Total de carros registrados
 int total_clientes;//Total de clientes registrados
 int total_vendas;//Total de vendas registradas
 
-char opcionais[][TAM]={ {"4.portas"}, {"cambio.automatico"}, {"vidros.eletricos"}, {"abs"}, {"air.bag"}, {"ar.condicionado"},
- {"banco.couro"}, {"sensor.estacionamento"}};
-
-/*-=--=--=--=--=--=--=--=--=-CADASTRO CARRO-=--=--=--=--=--=--=--=--=--=--=-*/
-struct CARRO {
- char placa[9]; //AAA-1234
- char modelo[TAM]; //gol, celta, palio, ...
- char fabricante[TAM]; //chevrolet, fiat, ...
- int ano_fabricacao; //1980 à 2017
- int ano_modelo; //1980 à 2018
- char combustivel[TAM]; //alcool, gasolina, flex, diesel
- char cor[TAM]; //branca, prata, preta
- int opcional[8]; //ver matriz opcionais
- float preco_compra;
-};
-typedef struct CARRO _CARRO;
-/*----------------------------------------------------------------------------*/
 
 /*-=--=--=--=--=--=--=--=--=-CADASTRO CLIENTE-=--=--=--=--=--=--=--=--=--=--=-*/
 struct ENDERECO {
@@ -71,7 +52,7 @@ void menu_carro(_CARRO* Carro);
 void menu_cliente(_CLIENTE* Cliente);
 void menu_venda(_VENDA_CARRO* Venda);
 //-----------FUNCOES REFERENTES AOS CARROS---------//
-void Insere_Carro(_CARRO* CARRO);
+
 /*-=--=--=--=--=--=--=--=--=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=--=--=--=--=--=--=--=--=-*/
 
 
@@ -133,6 +114,7 @@ void menu_principal(_CARRO* Carro, _CLIENTE* Cliente, _VENDA_CARRO* Venda)
 void menu_carro(_CARRO* Carro)
 {
   char op,sair = '1';
+  int i;
     do{
       printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=- \033[7mMENU CARRO\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
       printf("a. Inserir um carro no cadastro\nb. Excluir um carro do cadastro\nc. Listar os carros disponíveis para a venda em ordem crescente por fabricante e modelo\nd. Listar os carros disponíveis para a venda por seleção de um ou mais opcionais\ne. Listar os carros disponíveis para a venda por seleção da faixa de ano de fabricação\nf. Sair\n--> ");
@@ -141,11 +123,22 @@ void menu_carro(_CARRO* Carro)
       switch (op) {
         case 'a':
         case 'A':
-              Insere_Carro(Carro);
+              if(total_carros < TAM){
+                Insere_Carro(&Carro[total_carros]);
+                  total_carros++;
+                exibi(Carro, total_carros - 1, total_carros, 1);
+              }else{
+                printf("\n\n\t\033[31mDesculpe mas o limite de cadastros ja foi atingido\033[m\n\n");
+              }
               break;
         case 'b':
         case 'B':
-
+                if(total_carros){
+                  if(excluir(Carro,total_carros))
+                      total_carros--;
+                }else{
+                  printf("\n\n\t\033[31mNao ha carros para serem excluidos.\033[m\n\n");
+                }
               break;
         case 'c':
         case 'C':
@@ -251,13 +244,4 @@ void menu_venda(_VENDA_CARRO* Venda)
 
       }
     }while(sair != '0');
-}
-
-//objetivo: Inserir carro no registro de cadastro
-//parametros: Um vetor que contem os registro dos carros registrados
-//retorno: Sem retorno
-
-void Insere_Carro(_CARRO* CARRO)
-{
-    
 }
