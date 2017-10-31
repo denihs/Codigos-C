@@ -51,6 +51,8 @@ void menu_principal(_CARRO* Carro, _CLIENTE* Cliente, _VENDA_CARRO* Venda);
 void menu_carro(_CARRO* Carro);
 void menu_cliente(_CLIENTE* Cliente);
 void menu_venda(_VENDA_CARRO* Venda);
+void _exibiCarroOpcionais(_CARRO* carro);
+void _exibiCarroData(_CARRO* carro);
 //-----------FUNCOES REFERENTES AOS CARROS---------//
 
 /*-=--=--=--=--=--=--=--=--=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=--=--=--=--=--=--=--=--=-*/
@@ -142,15 +144,16 @@ void menu_carro(_CARRO* Carro)
               break;
         case 'c':
         case 'C':
-
+              ordena(Carro, total_carros);
+              exibi(Carro, 0, total_carros, 0);
               break;
         case 'd':
         case 'D':
-
+                total_carros ? _exibiCarroOpcionais(Carro) : printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
               break;
         case 'e':
         case 'E':
-
+              total_carros ? _exibiCarroData(Carro) : printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
               break;
         case 'f':
         case 'F':
@@ -244,4 +247,69 @@ void menu_venda(_VENDA_CARRO* Venda)
 
       }
     }while(sair != '0');
+}
+
+void _exibiCarroOpcionais(_CARRO* carro)
+{
+
+      int quantidade, i, aux, verifica = 1;
+      int opcoes[8];
+
+      printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=- \033[7mSelecao por opcoes\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+        printf("Informe a quantidade de opcoes que seram buscadas (Entre 1 e 8): ");
+        do{
+          scanf("%d",&quantidade);
+          if (quantidade < 0 || quantidade > 8)
+              printf("\n\nValor informado é invalido, ele deve ser entre 1 e 8 (0 para cancelar a busca)\n--> ");
+        }while(quantidade < 0 || quantidade > 8);
+
+      if(quantidade){
+        printf("\nQual das opcoes voce deseja? \n");
+        printf("1 -> 4 Portas\n2 -> Cambio Automatico\n3 -> Vidros Eletricos\n4 -> Abs\n5 -> air.bag\n6  -> Ar Condicionado\n7 -> Banco Couro\n8 -> Sensor Estacionamento");
+        for(i = 0; i < quantidade; i++){
+            printf("\nOpcao %d--> ",i + 1);
+            do{
+              scanf("%d",&aux);
+              opcoes[i] = aux - 1;
+              if(opcoes[i] < 0 || opcoes[i] > 7){
+                printf("\nOs valores das opcoes devem ser de 1 a 8: ");
+              }
+              if( !sem_repeticao(opcoes, aux - 1, i) ){
+                  printf("\n\n\t\033[31mEste valor ja foi digitado\033[m\n\nInsira outra das opcoes--> ");
+                  verifica = 1;
+              }else{
+                  verifica = 0;
+              }
+            }while( (opcoes[i] < 0 || opcoes[i] > 7) || verifica);
+        }
+        exibiCarroOpcionais(carro, opcoes, quantidade, total_carros);
+      }else{
+        printf("\n\n\t\033[31mOperacao cancelada\033[m\n\n");
+      }
+}
+
+void _exibiCarroData(_CARRO* carro)
+{
+  int i, dataInicial, dataFinal;
+  printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=- \033[7mSelecao por faixa de ano\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    printf("Data inicial (1980 - 2017 ): ");
+      do{
+          scanf("%d",&dataInicial);
+          if( dataInicial < 1980 || dataInicial > 2017 ){
+            printf("O ano deve ser entre 1980 e 2017: ");
+          }
+      }while(dataInicial < 1980 || dataInicial > 2017);
+    printf("Data final (1980 - 2017 ): ");
+      do{
+          scanf("%d",&dataFinal);
+          if( dataFinal < 1980 || dataFinal > 2017 ){
+            printf("O ano deve ser entre 1980 e 2017: ");
+          }else
+          if( dataInicial > dataFinal ){
+            printf("A data final deve ser maior ou igual em relacao a data inicial inserida que em seu caso foi: %d\n",dataInicial);
+            printf("--> ");
+          }
+      }while(dataFinal < 1980 || dataFinal > 2017 || dataInicial > dataFinal);
+
+      exibiCarroData(carro, dataInicial, dataFinal, total_carros);
 }
