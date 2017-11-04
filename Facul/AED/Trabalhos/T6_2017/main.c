@@ -1,4 +1,5 @@
 #include "librarys/carro/carro.h"
+#include "librarys/cliente/cliente.h"
 
 int total_carros; //Total de carros registrados
 int total_clientes;//Total de clientes registrados
@@ -34,13 +35,20 @@ void menu_principal();
 void menu_carro();
 void cadastro_carro(FILE* p);
 void mostraCarro(FILE* p);
-void _excluir();
+int _excluir();
 void _ordena();
 void _exibi(FILE* f);
 void _exibiCarroOpcionais(FILE* f);
 void _exibiCarroData(FILE* f);
 
 void menu_cliente();
+void cadastro_cliente(FILE* p);
+void mostraCliente(FILE* p);
+int _excluir_CLIENTE();
+void _ordena_CLIENTE();
+void _exibi_CLIENTE(FILE* f);
+void _ordenaNomeSalario_CLIENTE();
+
 void menu_venda();
 //-----------FUNCOES REFERENTES AOS CARROS---------//
 
@@ -131,16 +139,16 @@ void iniciar_sistema()
 //retorno: Sem retorno
 void menu_principal()
 {
-    /*char cliente[] = {"file/cliente.dat"};
+    /*
     char venda[] = {"file/venda.dat"};
-    FILE* fCliente;
+
     FILE* fVenda;
 
-    fCliente = open(cliente,"a+b");
+
     fVenda = open(venda, "a+b");
 
 
-    close(fCliente, cliente);
+
     close(fVenda, venda); */
     char opI;
     do{
@@ -196,36 +204,49 @@ void menu_carro()
                   mostraCarro(fCarro);
                 close(fCarro, carro);
               }else{
-                printf("\n\n\t\033[31mDesculpe mas o limite de cadastros ja foi atingido\033[m\n\n");
+                printf("\n\n\t\033[31mDesculpe mas o limite de cadastros para carros ja foi atingido\033[m\n\n");
               }
               break;
         case 'b':
         case 'B':
                 if(total_carros){
-                      _excluir(fCarro);
+                    if(  _excluir()){
                       total_carros--;
+                    }
                 }else{
                   printf("\n\n\t\033[31mNao ha carros para serem excluidos.\033[m\n\n");
                 }
               break;
         case 'c':
         case 'C':
-                _ordena();
-                fCarro = open(carro,"rb");
-                    _exibi(fCarro);
-                close(fCarro, carro);
+                if(total_carros){
+                    _ordena();
+                    fCarro = open(carro,"rb");
+                        _exibi(fCarro);
+                    close(fCarro, carro);
+                }else{
+                    printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
+                }
               break;
         case 'd':
         case 'D':
+                  if(total_carros)  {
                     fCarro = open(carro,"rb");
-                        total_carros ? _exibiCarroOpcionais(fCarro) : printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
+                       _exibiCarroOpcionais(fCarro);
                     close(fCarro, carro);
+                  }else{
+                      printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
+                  }
               break;
         case 'e':
         case 'E':
-                  fCarro = open(carro,"r");
-                    total_carros ? _exibiCarroData(fCarro) : printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
-                  close(fCarro, carro);
+                  if(total_carros)  {
+                    fCarro = open(carro,"rb");
+                      _exibiCarroData(fCarro);
+                    close(fCarro, carro);
+                  }else{
+                      printf("\n\n\t\033[31mNao existe nenhum carro cadastrado ate o momento\033[m\n\n");
+                  }
               break;
         case 'f':
         case 'F':
@@ -253,11 +274,12 @@ void mostraCarro(FILE* p)
         for(i = 0; i < total_carros; i++){
           fread(&carro[i], sizeof(carro[i]), 1, p);
         }
-      exibi(carro,total_carros -1 , total_carros, 0);
+      exibi(carro,total_carros -1 , total_carros, 1);
 }
 
-void _excluir()
+int _excluir()
 {
+  int resposta;
   char carro[] = {"file/carro.dat"};
   FILE* f;
 
@@ -269,7 +291,7 @@ void _excluir()
       for(i = 0; i < total_carros; i++){
         fread(&carros[i], sizeof(carros[i]), 1, f);
       }
-    excluir(carros,total_carros);
+    resposta = excluir(carros,total_carros);
   close(f, carro);
 
   f = open(carro,"wb");
@@ -277,7 +299,7 @@ void _excluir()
         fwrite(&carros[i], sizeof(carros[i]), 1, f);
       }
   close(f, carro);
-
+  return resposta;
 }
 
 void _ordena()
@@ -394,6 +416,11 @@ void _exibiCarroData(FILE* f)
 void menu_cliente()
 {
   char op,sair = '1';
+  FILE* fCliente;
+  char cliente[] = {"file/cliente.dat"};
+
+  fCliente = open(cliente,"a+b");
+  close(fCliente, cliente);
     do{
       printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=- \033[7mMENU CLIENTE\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
       printf("a. Inserir um cliente no cadastro\nb. Excluir um cliente do cadastro\nc. Listar os clientes do cadastro em ordem crescente pelo nome\nd. Listar os clientes do cadastro em ordem crescente pelo nome e por seleção de faixa de renda salarial mensal\ne. Sair\n--> ");
@@ -402,19 +429,44 @@ void menu_cliente()
       switch (op) {
         case 'a':
         case 'A':
-
+            if(total_clientes < TAM){
+                  //Abrindo para adicionar um cadastro
+                  fCliente = open(cliente,"ab");
+                    cadastro_cliente(fCliente);
+                  close(fCliente, cliente);
+                      total_clientes++;
+                  //Abrindo para ler os dados do cadastro inserido
+                  fCliente = open(cliente,"rb");
+                    mostraCliente(fCliente);
+                  close(fCliente, cliente);
+                }else{
+                  printf("\n\n\t\033[31mDesculpe mas o limite de cadastros para clientes ja foi atingido\033[m\n\n");
+                }
               break;
         case 'b':
         case 'B':
-
+                if(total_clientes){
+                      if( _excluir_CLIENTE(fCliente) ){
+                        total_clientes--;
+                      }
+                }else{
+                  printf("\n\n\t\033[31mNao ha clientes para serem excluidos.\033[m\n\n");
+                }
               break;
         case 'c':
         case 'C':
-
+                if(total_clientes){
+                    _ordena_CLIENTE();
+                    fCliente = open(cliente,"rb");
+                      _exibi_CLIENTE(fCliente);
+                    close(fCliente, cliente);
+                }else{
+                    printf("\n\n\t\033[31mNao existe nenhum cliente cadastrado ate o momento\033[m\n\n");
+                }
               break;
         case 'd':
         case 'D':
-
+                    total_clientes ? _ordenaNomeSalario_CLIENTE() : printf("\n\n\t\033[31mNao existe nenhum cliente cadastrado ate o momento\033[m\n\n");
               break;
         case 'e':
         case 'E':
@@ -424,6 +476,104 @@ void menu_cliente()
               printf("\n\nValor invalido! Informe outro ");
       }
     }while(sair != '0');
+}
+
+void cadastro_cliente(FILE* p)
+{
+  _CLIENTE cliente;
+    insereCliente( &cliente );
+    fwrite(&cliente, sizeof(cliente), 1, p);
+}
+
+void mostraCliente(FILE* p)
+{
+    int i;
+    _CLIENTE cliente[total_clientes];
+        fseek(p, 0, SEEK_SET);
+        for(i = 0; i < total_clientes; i++){
+          fread(&cliente[i], sizeof(cliente[i]), 1, p);
+        }
+      exibi_CLIENTE(cliente,total_clientes -1 , total_clientes, 1);
+}
+
+int _excluir_CLIENTE()
+{
+  int resposta;
+  char cliente[] = {"file/cliente.dat"};
+  FILE* f;
+
+  int i;
+  _CLIENTE clientes[total_clientes];
+
+  f = open(cliente,"rb");
+      fseek(f, 0, SEEK_SET);
+      for(i = 0; i < total_clientes; i++){
+        fread(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+    resposta = excluir_CLIENTE(clientes,total_clientes);
+  close(f, cliente);
+
+  f = open(cliente,"wb");
+      for(i = 0; i < total_clientes; i++){
+        fwrite(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+  close(f, cliente);
+  return resposta;
+}
+
+void _ordena_CLIENTE()
+{
+  char cliente[] = {"file/cliente.dat"};
+  FILE* f;
+
+  int i;
+  _CLIENTE clientes[total_clientes];
+
+  f = open(cliente,"rb");
+      fseek(f, 0, SEEK_SET);
+      for(i = 0; i < total_clientes; i++){
+        fread(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+    ordena_CLIENTE(clientes,total_clientes);
+  close(f, cliente);
+
+  f = open(cliente,"wb");
+      for(i = 0; i < total_clientes; i++){
+        fwrite(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+  close(f, cliente);
+}
+
+void _exibi_CLIENTE(FILE* f)
+{
+  int i;
+  _CLIENTE clientes[total_clientes];
+      fseek(f, 0, SEEK_SET);
+      for(i = 0; i < total_clientes; i++){
+        fread(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+    exibi_CLIENTE(clientes,0 , total_clientes, 0);
+}
+
+void _ordenaNomeSalario_CLIENTE()
+{
+  char cliente[] = {"file/cliente.dat"};
+  FILE* f;
+  int i;
+  _CLIENTE clientes[total_clientes];
+  f = open(cliente,"rb");
+      fseek(f, 0, SEEK_SET);
+      for(i = 0; i < total_clientes; i++){
+        fread(&clientes[i], sizeof(clientes[i]), 1, f);
+      }
+    ordenaNomeSalario_CLIENTE(clientes, total_clientes);
+  close(f, cliente);
+  exibi_CLIENTE(clientes,0 , total_clientes, 0);
+    f = open(cliente,"wb");
+        for(i = 0; i < total_clientes; i++){
+          fwrite(&clientes[i], sizeof(clientes[i]), 1, f);
+        }
+    close(f, cliente);
 }
 //objetivo: Gerenciar a escolha do usuario referente apenas a uma venda
 //parametros: Um vetor que contem os registro das vendas

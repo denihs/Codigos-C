@@ -1,7 +1,10 @@
 #ifndef CPF_LIBRARY
 #define CPF_LIBRARY
 
-#include "../registros/registros.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
 /*-----------------------VALIDAÇÃO DE C-----------------------------*/
     int cpfValidoP(char* cpf);//Verifica se o CPF é valido, passando ele ja formatado com os pontos e traços

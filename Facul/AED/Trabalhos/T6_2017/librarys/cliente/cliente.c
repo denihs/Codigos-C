@@ -2,9 +2,11 @@
 
 void insereCliente(_CLIENTE* cliente)
 {
+  cliente->status = 1;
   nome(cliente);
   cpf(cliente->cpf);
-  endereco(cliente);
+  estado(cliente);
+  salario(cliente);
 }
 
 void nome(_CLIENTE* cliente)
@@ -28,16 +30,14 @@ void cpf(char* cpf)
   insere_pontuacao_cpf(cpfTemp, cpf);
 }
 
-void endereco(_CLIENTE* cliente)
-{
-    estado(cliente);
-}
 void estado(_CLIENTE* cliente)
 {
   char est[][5] = {"MS","SP","RJ","MT","PR"};
   int x = rand() % 5;
     strcpy(cliente->endereco.estado, est[x]);
     cidade(cliente, x);
+    telResidencial(cliente, x);
+    telCelular(cliente, x);
 }
 void cidade(_CLIENTE* cliente, int x)
 {
@@ -486,11 +486,257 @@ void cep_MS(_CLIENTE* cliente, int x, int y)
   }
   numero(cliente);
 }
-
-
-
-
 void numero(_CLIENTE* cliente)
 {
   cliente->endereco.numero = 100 + (rand() % 2000);
+}
+
+void telResidencial(_CLIENTE* cliente, int Est)
+{
+
+  switch (Est) {
+    case 0:
+            cliente->residencial.telefone[0] = '6';
+            cliente->residencial.telefone[1] = '7';
+            cliente->residencial.telefone[2] = ' ';
+            cliente->residencial.telefone[3] = '3';
+            _telResidencial(cliente);
+          break;
+    case 1:
+            cliente->residencial.telefone[0] = '1';
+            cliente->residencial.telefone[1] = '1';
+            cliente->residencial.telefone[2] = ' ';
+            cliente->residencial.telefone[3] = '3';
+            _telResidencial(cliente);
+          break;
+    case 2:
+            cliente->residencial.telefone[0] = '2';
+            cliente->residencial.telefone[1] = '1';
+            cliente->residencial.telefone[2] = ' ';
+            cliente->residencial.telefone[3] = '3';
+            _telResidencial(cliente);
+          break;
+    case 3:
+            cliente->residencial.telefone[0] = '6';
+            cliente->residencial.telefone[1] = '5';
+            cliente->residencial.telefone[2] = ' ';
+            cliente->residencial.telefone[3] = '3';
+            _telResidencial(cliente);
+          break;
+    case 4:
+            cliente->residencial.telefone[0] = '4';
+            cliente->residencial.telefone[1] = '1';
+            cliente->residencial.telefone[2] = ' ';
+            cliente->residencial.telefone[3] = '3';
+            _telResidencial(cliente);
+          break;
+  }
+}
+void _telResidencial(_CLIENTE* cliente)
+{
+  int i;
+    char num[10] = {'1','2','3','4','5','6','7','8','9','0'};
+  for(i = 4; i < 7; i++){
+    cliente->residencial.telefone[i] = num[rand() % 10];
+   }
+   cliente->residencial.telefone[7] = '-';
+   for(i = 8; i < 12; i++){
+     cliente->residencial.telefone[i] =  num[rand() % 10];
+    }
+    cliente->residencial.telefone[12] = '\0';
+}
+
+void telCelular(_CLIENTE* cliente, int Est)
+{
+  int i, x = 1 + ( rand() % 5 );
+
+
+    cliente->celular[0].quantCelular = x;
+
+    for(i = 0; i < x; i++){
+      switch (Est) {
+        case 0:
+                cliente->celular[i].telefone[0] = '6';
+                cliente->celular[i].telefone[1] = '7';
+                cliente->celular[i].telefone[2] = ' ';
+                cliente->celular[i].telefone[3] = '9';
+                cliente->celular[i].telefone[4] = '9';
+                _telCelular(cliente, i);
+              break;
+        case 1:
+                cliente->celular[i].telefone[0] = '1';
+                cliente->celular[i].telefone[1] = '1';
+                cliente->celular[i].telefone[2] = ' ';
+                cliente->celular[i].telefone[3] = '9';
+                cliente->celular[i].telefone[4] = '9';
+                _telCelular(cliente, i);
+              break;
+        case 2:
+                cliente->celular[i].telefone[0] = '2';
+                cliente->celular[i].telefone[1] = '1';
+                cliente->celular[i].telefone[2] = ' ';
+                cliente->celular[i].telefone[3] = '9';
+                cliente->celular[i].telefone[4] = '9';
+                _telCelular(cliente, i);
+              break;
+        case 3:
+                cliente->celular[i].telefone[0] = '6';
+                cliente->celular[i].telefone[1] = '5';
+                cliente->celular[i].telefone[2] = ' ';
+                cliente->celular[i].telefone[3] = '9';
+                cliente->celular[i].telefone[4] = '9';
+                _telCelular(cliente, i);
+              break;
+        case 4:
+                cliente->celular[i].telefone[0] = '4';
+                cliente->celular[i].telefone[1] = '1';
+                cliente->celular[i].telefone[2] = ' ';
+                cliente->celular[i].telefone[3] = '9';
+                cliente->celular[i].telefone[4] = '9';
+                _telCelular(cliente, i);
+              break;
+        }
+   }
+}
+void _telCelular(_CLIENTE* cliente, int x)
+{
+  int i;
+    char num[10] = {'1','2','3','4','5','6','7','8','9','0'};
+  for(i = 5; i < 8; i++){
+    cliente->celular[x].telefone[i] = num[rand() % 10];
+   }
+   cliente->celular[x].telefone[8] = '-';
+   for(i = 9; i < 13; i++){
+     cliente->celular[x].telefone[i] =  num[rand() % 10];
+    }
+    cliente->celular[x].telefone[13] = '\0';
+}
+
+
+void salario(_CLIENTE* cliente)
+{
+  int x = 5 + (rand() % 16);
+  int y = rand() % 10;
+  cliente->renda_mensal = (1000 * x) + (100 * y);
+}
+
+
+void exibi_CLIENTE(_CLIENTE* cliente,int inicio, int TOT_CLIENTE, int path)
+{
+  int j = 0,i,verifica = 0, x;
+
+  if(!path){
+    printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=- \033[7mCLIENTES CADASTRADOS\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+  }
+
+  for(i = inicio; i < TOT_CLIENTE; i++){
+
+    if( cliente[i].status ){
+      if(!path){
+        printf("\n\n=-=-=-=-=-=-=-=- %d -=-=-=-=-=-=-=-=\n",j+ 1);
+      }else{
+        printf("\n\n=-=-=-=-=-=-=-=- CLIENTE INSERIDO -=-=-=-=-=-=-=-=\n");
+      }
+      printf("DADOS \n");
+      printf("\t* Nome:     %s\n",cliente[i].nome);
+      printf("\t* CPF:      %s\n", cliente[i].cpf);
+      printf("\t* Salario mensal: R$ %.2f\n",cliente[i].renda_mensal);
+
+      printf("CONTATO \n");
+      printf("\t* Fixo:     - %s\n",cliente[i].residencial.telefone);
+      printf("\t* Celular(es):\n");
+      for(x = 0; x < cliente[i].celular[0].quantCelular; x++){
+          printf("\t\t    - %s\n", cliente[i].celular[x].telefone);
+      }
+      printf("ENDERECO\n");
+      printf("\t* Estado: %s\n",cliente[i].endereco.estado);
+      printf("\t* Cidade: %s\n",cliente[i].endereco.cidade);
+      printf("\t* CEP: %s\n",cliente[i].endereco.cep);
+      printf("\t* Bairro: %s\n",cliente[i].endereco.bairro);
+      printf("\t* Rua: %s\n",cliente[i].endereco.rua);
+      printf("\t* N° %d\n",cliente[i].endereco.numero);
+      verifica = 1;
+      j++;
+    }
+  }
+  if( !verifica )
+      printf("\n\n\t\033[31mNenhum cliente no sistema.\033[m\n\n");
+}
+
+
+int excluir_CLIENTE(_CLIENTE*  cliente, int TOT_CLIENTE)
+{
+  _CLIENTE tmp;
+  int i, verifica = 0, pos;
+  char cpf[14];
+  printf("\n\nInsira o CPF do cliente que sera excluido (\033[31mFORMATO:\033[m 999.999.999-99): ");
+  __fpurge(stdin);
+  fgets(cpf,15,stdin);
+
+  for(i = 0; i < TOT_CLIENTE; i++){
+    if( !strcmp( cpf, cliente[i].cpf ) )
+    {
+        verifica = 1;
+        pos = i;
+    }
+  }
+
+  if( verifica ){
+    if(cliente[pos].status){
+        tmp = cliente[TOT_CLIENTE - 1];
+        cliente[TOT_CLIENTE - 1] = cliente[pos];
+        cliente[pos] = tmp;
+        printf("\n\n\tCliente excluido com sucesso! \n\n");
+        return 1;
+      }else{
+        printf("\n\n\t\033[31mEste cliente não pode ser excluido pois exite uma venda em seu nome.\033[m\n\n");
+      }
+  }
+  else{
+    printf("\n\n\t\033[31mNao registro cliente para o cpf informado.\033[m\n\n");
+  }
+  return 0;
+}
+
+void ordena_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
+{
+  int count, i;
+  _CLIENTE tmp;
+  for(count = 0; count < TOT_CLIENTE; count++){
+    for(i = 1 + count; i < TOT_CLIENTE; i++){
+        if(strcmp(cliente[count].nome, cliente[i].nome) > 0){
+          tmp = cliente[count];
+          cliente[count] = cliente[i];
+          cliente[i] = tmp;
+        }
+    }
+  }
+}
+
+void ordenaNomeSalario_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
+{
+  int count, i;
+  _CLIENTE tmp;
+  for(count = 0; count < TOT_CLIENTE; count++){
+    for(i = 1 + count; i < TOT_CLIENTE; i++){
+        if(strcmp(cliente[count].nome, cliente[i].nome) > 0){
+          tmp = cliente[count];
+          cliente[count] = cliente[i];
+          cliente[i] = tmp;
+        }
+    }
+  }
+  for(count = 0; count < TOT_CLIENTE; count++){
+    for(i = 1 + count; i < TOT_CLIENTE; i++){
+        if(!strcmp( cliente[count].nome, cliente[i].nome ) ){
+          if( cliente[count].renda_mensal > cliente[i].renda_mensal){
+            tmp = cliente[count];
+            cliente[count] = cliente[i];
+            cliente[i] = tmp;
+          }
+        }else{
+          continue;
+        }
+    }
+  }
 }
