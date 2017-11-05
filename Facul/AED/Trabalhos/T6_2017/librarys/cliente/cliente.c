@@ -631,7 +631,6 @@ void exibi_CLIENTE(_CLIENTE* cliente,int inicio, int TOT_CLIENTE, int path)
 
   for(i = inicio; i < TOT_CLIENTE; i++){
 
-    if( cliente[i].status ){
       if(!path){
         printf("\n\n=-=-=-=-=-=-=-=- %d -=-=-=-=-=-=-=-=\n",j+ 1);
       }else{
@@ -657,7 +656,6 @@ void exibi_CLIENTE(_CLIENTE* cliente,int inicio, int TOT_CLIENTE, int path)
       printf("\t* N° %d\n",cliente[i].endereco.numero);
       verifica = 1;
       j++;
-    }
   }
   if( !verifica )
       printf("\n\n\t\033[31mNenhum cliente no sistema.\033[m\n\n");

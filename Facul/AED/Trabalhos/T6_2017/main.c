@@ -1,9 +1,11 @@
 #include "librarys/carro/carro.h"
 #include "librarys/cliente/cliente.h"
+#include "librarys/venda/venda.h"
 
 int total_carros; //Total de carros registrados
 int total_clientes;//Total de clientes registrados
 int total_vendas;//Total de vendas registradas
+float TOTAL_VENDAS;//Total de vendas registradas
 
 
 /*-=--=--=--=--=--=--=--=--=-CADASTRO VENDA-=--=--=--=--=--=--=--=--=--=--=-*/
@@ -50,6 +52,12 @@ void _exibi_CLIENTE(FILE* f);
 void _ordenaNomeSalario_CLIENTE();
 
 void menu_venda();
+void insereVenda_CLIENTE();
+void _excluir_VENDA();
+void _listagemFabricante();
+void _listagemModelo();
+void totalVendas();
+void lucroGeral();
 //-----------FUNCOES REFERENTES AOS CARROS---------//
 
 /*-=--=--=--=--=--=--=--=--=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=--=--=--=--=--=--=--=--=-*/
@@ -107,6 +115,7 @@ void updateSistema(FILE* p)
   fwrite(&total_carros, sizeof(int), 1, p);
   fwrite(&total_clientes, sizeof(int) , 1, p);
   fwrite(&total_vendas, sizeof(int) , 1, p);
+  fwrite(&TOTAL_VENDAS, sizeof(float) , 1, p);
 
 }
 
@@ -123,6 +132,7 @@ void readInit(FILE* p)
     fread(&total_carros, sizeof(int) , 1, p);
     fread(&total_clientes, sizeof(int) , 1, p);
     fread(&total_vendas, sizeof(int) , 1, p);
+    fread(&TOTAL_VENDAS, sizeof(float) , 1, p);
 }
 
 //objetivo: Iniciar as variaveis contadoras no sistema
@@ -133,23 +143,14 @@ void iniciar_sistema()
   total_carros = 0;
   total_clientes = 0;
   total_vendas = 0;
+  TOTAL_VENDAS = 0.0;
 }
 //objetivo: Gerenciar os sub-menus de carro, cliente e venda
 //parametros: 3 veteres, um que contem os registro dos carros, outro com o registros dos cliente e outro com o registro de vendas
 //retorno: Sem retorno
 void menu_principal()
 {
-    /*
-    char venda[] = {"file/venda.dat"};
 
-    FILE* fVenda;
-
-
-    fVenda = open(venda, "a+b");
-
-
-
-    close(fVenda, venda); */
     char opI;
     do{
       printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=- \033[7mMENU PRINCIPAL\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
@@ -589,27 +590,51 @@ void menu_venda()
       switch (op) {
         case 'a':
         case 'A':
-
+                if(total_clientes && total_carros){
+                  insereVenda_CLIENTE();
+                }else{
+                  printf("\n\n\t\033[31mDeve ao menos um cliente e um carro para fazer uma venda!\033[m\n\n");
+                }
               break;
         case 'b':
         case 'B':
-
+                if(total_vendas){
+                    _excluir_VENDA();
+                }else{
+                  printf("\n\n\t\033[31mNao existe vendas para serem excluidas!\033[m\n\n");
+                }
               break;
         case 'c':
         case 'C':
-
+                if(total_vendas){
+                    _listagemFabricante();
+                }else{
+                  printf("\n\n\t\033[31mNao existe vendas para serem listadas!\033[m\n\n");
+                }
               break;
         case 'd':
         case 'D':
-
+                if(total_vendas){
+                    _listagemModelo();
+                }else{
+                  printf("\n\n\t\033[31mNao existe vendas para serem listadas!\033[m\n\n");
+                }
               break;
         case 'e':
         case 'E':
-
+                if(total_vendas){
+                    totalVendas();
+                }else{
+                  printf("\n\n\t\033[31mNenhum carro vendido ate o momento!\033[m\n\n");
+                }
               break;
         case 'f':
         case 'F':
-
+                if(total_vendas){
+                    lucroGeral();
+                }else{
+                  printf("\n\n\t\033[31mNenhum carro vendido ate o momento!\033[m\n\n");
+                }
               break;
         case 'g':
         case 'G':
@@ -620,4 +645,215 @@ void menu_venda()
 
       }
     }while(sair != '0');
+}
+
+void insereVenda_CLIENTE()
+{
+  int i;
+
+  _CARRO carros[total_carros];
+  _CLIENTE clientes[total_clientes];
+
+  char carro[] = {"file/carro.dat"};
+  char cliente[] = {"file/cliente.dat"};
+  FILE* fCarro;
+  FILE* fCliente;
+
+  fCarro = open(carro, "rb");
+    fseek(fCarro, 0, SEEK_SET);
+    for(i = 0; i < total_carros; i++){
+      fread(&carros[i], sizeof(carros[i]), 1, fCarro );
+    }
+  close(fCarro, carro);
+
+  fCliente = open(cliente, "rb");
+
+      _exibi_CLIENTE(fCliente);
+
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_clientes; i++){
+      fread(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+    }
+  close(fCliente, cliente);
+
+
+
+   if( insereVenda(carros, clientes, total_clientes, total_carros, &TOTAL_VENDAS) ){
+
+     total_vendas++;
+     fCarro = open(carro, "wb");
+       for(i = 0; i < total_carros; i++){
+         fwrite(&carros[i], sizeof(carros[i]), 1, fCarro );
+       }
+     close(fCarro, carro);
+
+     fCliente = open(cliente, "wb");
+       for(i = 0; i < total_clientes; i++){
+         fwrite(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+       }
+     close(fCliente, cliente);
+   }
+
+}
+
+void _excluir_VENDA()
+{
+  int i;
+
+  _CARRO carros[total_carros];
+  _CLIENTE clientes[total_clientes];
+  _VENDA vendas[total_vendas];
+
+  char carro[] = {"file/carro.dat"};
+  char cliente[] = {"file/cliente.dat"};
+  char venda[] = {"file/venda.dat"};
+  FILE* fCarro;
+  FILE* fCliente;
+  FILE* fVenda;
+
+  fCarro = open(carro, "rb");
+    fseek(fCarro, 0, SEEK_SET);
+    for(i = 0; i < total_carros; i++){
+      fread(&carros[i], sizeof(carros[i]), 1, fCarro );
+    }
+  close(fCarro, carro);
+
+  fCliente = open(cliente, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_clientes; i++){
+      fread(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+    }
+  close(fCliente, cliente);
+
+  fVenda = open(venda, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_vendas; i++){
+      fread(&vendas[i], sizeof(vendas[i]), 1, fVenda );
+    }
+  close(fVenda, venda);
+
+  if( excluir_VENDA(vendas, carros, clientes, total_vendas, total_clientes, total_carros, &TOTAL_VENDAS) ){
+
+    total_vendas--;
+
+    fCarro = open(carro, "wb");
+      for(i = 0; i < total_carros; i++){
+        fwrite(&carros[i], sizeof(carros[i]), 1, fCarro );
+      }
+    close(fCarro, carro);
+
+    fCliente = open(cliente, "wb");
+      for(i = 0; i < total_clientes; i++){
+        fwrite(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+      }
+    close(fCliente, cliente);
+
+    fVenda = open(venda, "wb");
+      for(i = 0; i < total_vendas; i++){
+        fwrite(&vendas[i], sizeof(vendas[i]), 1, fVenda );
+      }
+    close(fVenda, venda);
+
+    printf("\n\nExclusão concluida com sucesso\n\n");
+
+  }
+
+}
+
+void _listagemFabricante()
+{
+  int i;
+
+  _CARRO carros[total_carros];
+  _CLIENTE clientes[total_clientes];
+  _VENDA vendas[total_vendas];
+
+  char carro[] = {"file/carro.dat"};
+  char cliente[] = {"file/cliente.dat"};
+  char venda[] = {"file/venda.dat"};
+  FILE* fCarro;
+  FILE* fCliente;
+  FILE* fVenda;
+
+  fCarro = open(carro, "rb");
+    fseek(fCarro, 0, SEEK_SET);
+    for(i = 0; i < total_carros; i++){
+      fread(&carros[i], sizeof(carros[i]), 1, fCarro );
+    }
+  close(fCarro, carro);
+
+  fCliente = open(cliente, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_clientes; i++){
+      fread(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+    }
+  close(fCliente, cliente);
+
+  fVenda = open(venda, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_vendas; i++){
+      fread(&vendas[i], sizeof(vendas[i]), 1, fVenda );
+    }
+  close(fVenda, venda);
+  listaFabricante(vendas, carros, clientes, total_vendas, total_clientes, total_carros);
+}
+void _listagemModelo()
+{
+  int i;
+
+  _CARRO carros[total_carros];
+  _CLIENTE clientes[total_clientes];
+  _VENDA vendas[total_vendas];
+
+  char carro[] = {"file/carro.dat"};
+  char cliente[] = {"file/cliente.dat"};
+  char venda[] = {"file/venda.dat"};
+  FILE* fCarro;
+  FILE* fCliente;
+  FILE* fVenda;
+
+  fCarro = open(carro, "rb");
+    fseek(fCarro, 0, SEEK_SET);
+    for(i = 0; i < total_carros; i++){
+      fread(&carros[i], sizeof(carros[i]), 1, fCarro );
+    }
+  close(fCarro, carro);
+
+  fCliente = open(cliente, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_clientes; i++){
+      fread(&clientes[i], sizeof(clientes[i]), 1, fCliente );
+    }
+  close(fCliente, cliente);
+
+  fVenda = open(venda, "rb");
+    fseek(fCliente, 0, SEEK_SET);
+    for(i = 0; i < total_vendas; i++){
+      fread(&vendas[i], sizeof(vendas[i]), 1, fVenda );
+    }
+  close(fVenda, venda);
+  listaModelo(vendas, carros, clientes, total_vendas, total_clientes, total_carros);
+}
+
+void totalVendas()
+{
+  printf("\n\n=-==-==-==-==-==-==-==-==-RELATORIO DE VENDAS==-==-==-==-==-==-==-==-==-=\n");
+  printf("QUANTIDADE DE CARROS VENDIDOS ATE O MOMENTO: %d\n", total_vendas);
+  printf("VALOR TOTAL BRUTO DOS CARROS VENDIDOS: R$ %.2f\n",TOTAL_VENDAS);
+}
+
+void lucroGeral()
+{
+  float dispesas;
+  printf("\n\n=-==-==-==-==-==-==-==-==-LUCRO GERAL COM AS VENDAS==-==-==-==-==-==-==-==-==-=\n");
+  printf("Seu ganho bruto ate o momento eh R$ %.2f\n", TOTAL_VENDAS);
+  printf("Qual o valor total de suas despesas? ");
+  do{
+    scanf("%f", &dispesas);
+    if(dispesas < 0)
+        printf("\n\n\t\033[31mO valor de dispesas deve ser maior ou igual a ZERO!\033[m\n");
+        printf("--> ");
+  }while(dispesas < 0);
+  printf("Seu lucro total eh de R$ %.2f\n", TOTAL_VENDAS - dispesas);
+
 }

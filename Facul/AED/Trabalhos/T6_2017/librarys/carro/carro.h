@@ -35,7 +35,7 @@ void opcionais(_CARRO* carro);
 int sem_repeticao(int* vet,int arg,int x);
 void exibi_opcionais(_CARRO* carro);
 
-void exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path);
+int exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path);
 int excluir(_CARRO* carro, int TOT_CARROS);
 void ordena(_CARRO* carro,int TOT_CARROS);
 void exibiCarroOpcionais(_CARRO* carro,int* opcao, int qtd ,int TOT_CARROS);

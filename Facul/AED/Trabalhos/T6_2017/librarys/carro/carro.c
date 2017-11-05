@@ -194,7 +194,7 @@ int excluir(_CARRO*  carro, int TOT_CARROS)
   return 0;
 }
 
-void exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path)
+int exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path)
 {
   int j = 0,i,verifica = 0;
 
@@ -221,8 +221,11 @@ void exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path)
       j++;
     }
   }
-  if( !verifica )
+  if( !verifica ){
       printf("\n\n\t\033[31mNao existe carro disponivel para venda.\033[m\n\n");
+      return 0;
+  }
+      return 1;
 }
 
 void ordena(_CARRO* carro,int TOT_CARROS)
