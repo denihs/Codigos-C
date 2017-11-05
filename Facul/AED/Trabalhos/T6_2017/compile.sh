@@ -6,7 +6,10 @@ cd carro/ &&
 cd ../ &&
 cd venda/ &&
   gcc -c venda.c &&
+cd ../ &&
+cd cpf/ &&
+  gcc -c cpf.c &&
 
-cd ../../ && ar r library.a librarys/cliente/cliente.o librarys/carro/carro.o librarys/venda/venda.o  &&
+cd ../../ && ar r library.a librarys/cliente/cliente.o librarys/cpf/cpf.o librarys/carro/carro.o librarys/venda/venda.o  &&
 gcc -o main main.c library.a -lm &&
 ./main

@@ -21,7 +21,9 @@ void Insere_Carro(_CARRO* carro)
   opcionais(carro);
 
 }
-
+//objetivo: Escolhe de forma randomica um fabricante e o coloca no registro
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void fabricante(_CARRO* carro)
 {
     int x = rand() % 8;
@@ -30,6 +32,10 @@ void fabricante(_CARRO* carro)
     modelo_carro(carro, x);
 }
 
+
+//objetivo: Escolhe de forma randomica um modelo e o coloca no registro
+//parametros: recebe o registro do carro que esta sendo inserido e o fabricante que foi escolhido acima
+//retorno: Sem retorno
 void modelo_carro(_CARRO* carro, int rande)
 {
   char Volkswagen[][TAM] = {"Brasilia", "Fox", "Fusca", "Gol", "Golf","Jetta","Parati","Passat","Saveiro","Karmann Ghia Cabriolét"};
@@ -70,20 +76,30 @@ void modelo_carro(_CARRO* carro, int rande)
   }
 }
 
+//objetivo: Gerar um ano de fabricação para um carro e o ano do modelo
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void anoFrabr_anoMod(_CARRO* carro)
 {
     int x = rand() % 2;
     int anoFrab = 1980 + (rand() % 38);
     carro->ano_fabricacao = anoFrab;
-    carro->ano_modelo = anoFrab + x;
+    carro->ano_modelo = anoFrab + x;//O ano de modelo podera ser até um ano a mais que o ano de fabricação
 }
 
+
+//objetivo: Escolha um cor de maneira aleatoria dentre as disponiveis
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void cor(_CARRO* carro){
   char palheta[][TAM] = {"Branca", "Preta", "Prata ", "Verde ", "Vermelho", "Azul","Amarelo", "Rosa ", "Marrom Metalico"};
   int x = rand () % 9;
   strcpy( carro->cor, palheta[x] );
 }
 
+//objetivo: Escolha um tipo de combustivel de maneira aleatoria dentre os disponiveis
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void combustivel(_CARRO* carro)
 {
   char comb[][TAM] = {"Alcool","Gasolina","Flex","Diesel"};
@@ -91,6 +107,10 @@ void combustivel(_CARRO* carro)
   strcpy( carro->combustivel, comb[x] );
 }
 
+
+//objetivo: Gera um valor de maneira aleatoria para um carro
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void valor_carro(_CARRO* carro)
 {
   int x = 5 + (rand() % 46);
@@ -98,6 +118,9 @@ void valor_carro(_CARRO* carro)
   carro->preco_compra = (1000 * x) + (100 * y);
 }
 
+//objetivo: Gerar  uma placa de forma aleatoria para um carro
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void placa(_CARRO* carro)
 {
    int i,x;
@@ -119,11 +142,14 @@ void placa(_CARRO* carro)
    carro->placa[8] = '\0';
 }
 
+//objetivo: Determinar quantos e quais opcionais um carro tera
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void opcionais(_CARRO* carro)
 {
   int x = rand() % 9, i, y;
 
-  carro->opcional[8] = x;
+  carro->opcional[8] = x;//Na ultima posição guardamos a quantidade de opicionais que o carro possui
     if(x){
       for(i = 0; i < x; i++ ){
           y = rand() % 8;
@@ -134,17 +160,23 @@ void opcionais(_CARRO* carro)
     }
 }
 
+//objetivo: Nao Permitir que exista repetição de opcionais
+//parametros: O vetor com os opcionais ja escolhidos, o opcional que sera evitado a repetição e a quantidade de dados ja inserido no vetor de opicionais
+//retorno: Sem retorno
 int sem_repeticao(int* vet,int arg,int x)
 {
     int i;
     for(i = 0; i < x; i++){
       if(arg == vet[i]){
-          return 0;
+          return 0;//Se existe algum igual ele retorna zero
       }
     }
     return 1;
 }
 
+//objetivo: Com os opcionais determinados se pode exibi-los nesta função
+//parametros: recebe o registro do carro que esta sendo inserido
+//retorno: Sem retorno
 void exibi_opcionais(_CARRO* carro)
 {
   char opcionais[][TAM]={ {"4.portas"}, {"cambio.automatico"}, {"vidros.eletricos"}, {"abs"}, {"air.bag"}, {"ar.condicionado"}, {"banco.couro"}, {"sensor.estacionamento"}};
@@ -160,6 +192,10 @@ void exibi_opcionais(_CARRO* carro)
   }
 
 }
+
+//objetivo: Excluir um carro do cadastro
+//parametros: recebe todos os carros registrados
+//retorno: Retorna 1 se o carro foi excluido e ZERO caso contrario
 int excluir(_CARRO*  carro, int TOT_CARROS)
 {
   _CARRO tmp;
@@ -168,7 +204,7 @@ int excluir(_CARRO*  carro, int TOT_CARROS)
   printf("\n\nInsira a placa do carro que sera excluido (\033[31mFORMATO:\033[m ABC-1234): ");
   __fpurge(stdin);
   fgets(placa,9,stdin);
-
+//Apos a leitura da placa que o usuario deseja excluir verificamos se ela consta no sistema
   for(i = 0; i < TOT_CARROS; i++){
     if( !strcmp( placa, carro[i].placa ) )
     {
@@ -177,8 +213,9 @@ int excluir(_CARRO*  carro, int TOT_CARROS)
     }
   }
 
-  if( verifica ){
-    if(carro[pos].status){
+  if( verifica ){//Se a placa existe no sistema
+    if(carro[pos].status){//verificamos se o carro ja não foi vendido, casso não teha cido
+        //fazemos a exclusão
         tmp = carro[TOT_CARROS - 1];
         carro[TOT_CARROS - 1] = carro[pos];
         carro[pos] = tmp;
@@ -191,9 +228,14 @@ int excluir(_CARRO*  carro, int TOT_CARROS)
   else{
     printf("\n\n\t\033[31mNao existe registro da placa informada.\033[m\n\n");
   }
+  //Se a exclusão falhou
   return 0;
 }
 
+
+//objetivo: Exibir um carro do cadastro
+//parametros: recebe todos os carros registrados, de onde ele vai começar a mostrar, o total de carros do sistema e 0 ou 1 para indicar se é uma listagem ou uma inclusão
+//retorno: Retorna 1 se existe algum carro disponivel
 int exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path)
 {
   int j = 0,i,verifica = 0;
@@ -228,10 +270,15 @@ int exibi(_CARRO* carro,int inicio, int TOT_CARROS, int path)
       return 1;
 }
 
+
+//objetivo: Ordena um carro por fabricante e modelo
+//parametros: recebe todos os carros registrados e o total de carros no sistema
+//retorno: Sem retorno
 void ordena(_CARRO* carro,int TOT_CARROS)
 {
   int count, i;
   _CARRO tmp;
+  //Faz a ordenação por fabricante
   for(count = 0; count < TOT_CARROS; count++){
     for(i = 1 + count; i < TOT_CARROS; i++){
         if(strcmp(carro[count].fabricante, carro[i].fabricante) > 0){
@@ -241,6 +288,7 @@ void ordena(_CARRO* carro,int TOT_CARROS)
         }
     }
   }
+  //Faz a ordenação por modelo
   for(count = 0; count < TOT_CARROS; count++){
     for(i = 1 + count; i < TOT_CARROS; i++){
         if(!strcmp( carro[count].fabricante, carro[i].fabricante ) ){
@@ -256,25 +304,33 @@ void ordena(_CARRO* carro,int TOT_CARROS)
   }
 }
 
+
+
+//objetivo: Exibi os carros em relação a um conjunto de opcionais
+//parametros: recebe todos os carros registrado, um vetor com as solicitações a quantidade solicitada e a quantidade de carros cadastrados
+//retorno: Sem retorno
 void exibiCarroOpcionais(_CARRO* carro,int* opcao, int qtd ,int TOT_CARROS)
 {
   int i,j,x, w = 0, verifica = 0, Qprint = 0, Qops;
   if(qtd){
       for(i = 0; i < TOT_CARROS; i++){
-
+        //Verifica em um determinado carro quantas opcionais ele possui
         Qops = carro[i].opcional[8];
         for(x = 0; x < carro[i].opcional[8]; x++){
           if(carro[i].opcional[x] == -1 )
             Qops--;
         }
+        //Se esse carro não foi vendido e a quantidade de opções bate com a quantidade solicita
         if( carro[i].status  && Qops == qtd ){
               for(x = 0; x < qtd; x++){
+                //Ele verifica quais dos opcionais que o carro possui bate com os solicitados
                 for(j = 0; j < carro[i].opcional[8]; j++){
                    if(opcao[x] == carro[i].opcional[j]){
                       verifica++;
                     }
                 }
               }
+              //Se os opcionais do carro é igual a solicitada ele mosta o carro
               if( qtd == verifica ){
                  !w ? printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=- \033[7mCARROS DISPONIVEIS PARA VENDA\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-") : 0;
                   printf("\n\n=-=-=-=-=-=-=-=- %d -=-=-=-=-=-=-=-=\n",w+ 1);
@@ -298,10 +354,14 @@ void exibiCarroOpcionais(_CARRO* carro,int* opcao, int qtd ,int TOT_CARROS)
     }
 }
 
+//objetivo: Exibi os carros em relação a uma faixa de ano
+//parametros: recebe todos os carros registrados, a data inicial , a data final e o total de carros
+//retorno: Sem retorno
 void exibiCarroData(_CARRO* carro,int dataInicial, int dataFinal ,int TOT_CARROS)
 {
   int i,w=0, verifica = 0;
     for(i = 0; i < TOT_CARROS; i++){
+      //Caso seja encontrado um caso na faixa desejada ele sera apresentado
       if(carro[i].ano_fabricacao >= dataInicial && carro[i].ano_fabricacao <= dataFinal ){
         !w ? printf("\n\n=-=-=-=-=-=-=-=-=-=-=-=- \033[7mCARROS DISPONIVEIS PARA VENDA\033[m -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-") : 0;
          printf("\n\n=-=-=-=-=-=-=-=- %d -=-=-=-=-=-=-=-=\n",w+ 1);

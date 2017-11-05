@@ -1,5 +1,8 @@
 #include "cliente.h"
 
+//objetivo: Fazer as chamadas das funções que inserem um cliente no sistema
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void insereCliente(_CLIENTE* cliente)
 {
   cliente->status = 1;
@@ -9,6 +12,9 @@ void insereCliente(_CLIENTE* cliente)
   salario(cliente);
 }
 
+//objetivo: Escolhe um nome de maneira aleatoria na matriz de nomes
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void nome(_CLIENTE* cliente)
 {
   int x = rand() % 50;
@@ -23,6 +29,10 @@ void nome(_CLIENTE* cliente)
                           "Zuriel Varella"};
     strcpy(cliente->nome, nomes[x]);
 }
+
+//objetivo: Vai determinar um CPF para o cliente chamando a função na biblioteca "cpf"
+//parametros: O atributo que sera armazenado o CPF
+//retorno: Sem retorno
 void cpf(char* cpf)
 {
   char cpfTemp[12];
@@ -30,6 +40,9 @@ void cpf(char* cpf)
   insere_pontuacao_cpf(cpfTemp, cpf);
 }
 
+//objetivo: Escolhe um estado de maneira aleatoria no vetor dos estados
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void estado(_CLIENTE* cliente)
 {
   char est[][5] = {"MS","SP","RJ","MT","PR"};
@@ -39,6 +52,10 @@ void estado(_CLIENTE* cliente)
     telResidencial(cliente, x);
     telCelular(cliente, x);
 }
+
+//objetivo: Escolhe uma cidade de maneira aleatoria na vetor de cidades com relação ao estado escolhido acima
+//parametros: O cliente que sera cadastrada e o numero que representa o estado escolhido
+//retorno: Sem retorno
 void cidade(_CLIENTE* cliente, int x)
 {
   char cidades_MS[][TAM] = {"Campo Grande","Dourados","Fatima do Sul","Bonito","Tres Lagoas"};
@@ -73,7 +90,20 @@ void cidade(_CLIENTE* cliente, int x)
 
 }
 
+/*
+  Daqui para para baxo que sera determinado bairro, rua, cep, e numero de Casa
+  e é um algoritmo igual para cada estado, porem modelado para ser o mais
+  coerente possivel com a vida real. Então para cada cidade acima existe 5
+  bairros e para cada bairro temos uma rua e um CEP que equivale os do mundo afora.
+
+  Por funcionarem da mesma forma, apenas dados do PARANA seram comentados.
+*/
+
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-PARANA=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+
+//objetivo: Escolhe um bairro que exista em uma cidade do Parana
+//parametros: O cliente que sera cadastrada e a cidade que foi escolhida acima
+//retorno: Sem retorno
 void bairro_PR(_CLIENTE* cliente, int x)
 {
   char bairros_Cidade_1[][TAM] = {"Loteamento Mata Verde", "Parque Presidente II", "Jardim Eliza II", "Jardim Amazonas", "Jardim São Paulo I"};
@@ -101,6 +131,10 @@ void bairro_PR(_CLIENTE* cliente, int x)
   }
   rua_PR(cliente, x, y);
 }
+
+//objetivo: Escolhe a rua escolhida do bairro acima
+//parametros: O cliente que sera cadastrada a cidade e o bairro definidos acima
+//retorno: Sem retorno
 void rua_PR(_CLIENTE* cliente, int x,int y)
 {
   char rua_Cidade_1[][TAM] = {"Rua São Vicente", "Travessa Joana Moleda", "Rua Ernesto Keller", "Avenida República Argentina", "Rua do Semeador"};
@@ -128,6 +162,10 @@ void rua_PR(_CLIENTE* cliente, int x,int y)
   }
   cep_PR(cliente, x, y);
 }
+
+//objetivo: Define o CEP da rua deifinida acima
+//parametros: O cliente que sera cadastrada, a cidade e a rua insirida
+//retorno: Sem retorno
 void cep_PR(_CLIENTE* cliente, int x, int y)
 {
   char cep_Cidade_1[][TAM] = {"85.853-680", "85.863-650", "85.854-200", "85.857-188", "85.856-375"};
@@ -155,6 +193,8 @@ void cep_PR(_CLIENTE* cliente, int x, int y)
   }
   numero(cliente);
 }
+
+
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-MATO GROSSO-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 void bairro_MT(_CLIENTE* cliente, int x)
 {
@@ -237,6 +277,7 @@ void cep_MT(_CLIENTE* cliente, int x, int y)
   }
   numero(cliente);
 }
+
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-RIO DE JANEIRO=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 void bairro_RJ(_CLIENTE* cliente, int x)
 {
@@ -486,11 +527,18 @@ void cep_MS(_CLIENTE* cliente, int x, int y)
   }
   numero(cliente);
 }
+
+//objetivo: Define um numero para a casa do cliente
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void numero(_CLIENTE* cliente)
 {
   cliente->endereco.numero = 100 + (rand() % 2000);
 }
 
+//objetivo: Define um telefone fixo para um cliente
+//parametros: O cliente que sera cadastrada e o estado que foi inserido a ele para coincidir o DDD
+//retorno: Sem retorno
 void telResidencial(_CLIENTE* cliente, int Est)
 {
 
@@ -532,6 +580,9 @@ void telResidencial(_CLIENTE* cliente, int Est)
           break;
   }
 }
+//objetivo: Complementa o numero apos terem cido definidos o DDD
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void _telResidencial(_CLIENTE* cliente)
 {
   int i;
@@ -546,6 +597,9 @@ void _telResidencial(_CLIENTE* cliente)
     cliente->residencial.telefone[12] = '\0';
 }
 
+//objetivo: Define um telefone celular para um cliente
+//parametros: O cliente que sera cadastrada e o estado que foi inserido a ele para coincidir o DDD
+//retorno: Sem retorno
 void telCelular(_CLIENTE* cliente, int Est)
 {
   int i, x = 1 + ( rand() % 5 );
@@ -598,6 +652,9 @@ void telCelular(_CLIENTE* cliente, int Est)
         }
    }
 }
+//objetivo: Complementa o numero apos terem cido definidos o DDD
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void _telCelular(_CLIENTE* cliente, int x)
 {
   int i;
@@ -612,7 +669,9 @@ void _telCelular(_CLIENTE* cliente, int x)
     cliente->celular[x].telefone[13] = '\0';
 }
 
-
+//objetivo: Define um salario para o cliente
+//parametros: O cliente que sera cadastrada
+//retorno: Sem retorno
 void salario(_CLIENTE* cliente)
 {
   int x = 5 + (rand() % 16);
@@ -620,7 +679,9 @@ void salario(_CLIENTE* cliente)
   cliente->renda_mensal = (1000 * x) + (100 * y);
 }
 
-
+//objetivo: Exibir os clientes cadastrados no sistema
+//parametros: A lista dos clientes cadastrados, o numero de onde começar , o total de clientes inseridos, alem de um valor logico para definir qual titulo o exibição tera
+//retorno: Sem retorno
 void exibi_CLIENTE(_CLIENTE* cliente,int inicio, int TOT_CLIENTE, int path)
 {
   int j = 0,i,verifica = 0, x;
@@ -661,7 +722,9 @@ void exibi_CLIENTE(_CLIENTE* cliente,int inicio, int TOT_CLIENTE, int path)
       printf("\n\n\t\033[31mNenhum cliente no sistema.\033[m\n\n");
 }
 
-
+//objetivo: Exclui um cliente do sistema
+//parametros: A lista com todos os cliente, e o total de cadastros
+//retorno: retorna 1 se a exclusão foi bem sucessedida
 int excluir_CLIENTE(_CLIENTE*  cliente, int TOT_CLIENTE)
 {
   _CLIENTE tmp;
@@ -670,7 +733,7 @@ int excluir_CLIENTE(_CLIENTE*  cliente, int TOT_CLIENTE)
   printf("\n\nInsira o CPF do cliente que sera excluido (\033[31mFORMATO:\033[m 999.999.999-99): ");
   __fpurge(stdin);
   fgets(cpf,15,stdin);
-
+  //Verifica se o CPF do cliente escolhido para ser excluido existe no cadastro
   for(i = 0; i < TOT_CLIENTE; i++){
     if( !strcmp( cpf, cliente[i].cpf ) )
     {
@@ -679,8 +742,9 @@ int excluir_CLIENTE(_CLIENTE*  cliente, int TOT_CLIENTE)
     }
   }
 
-  if( verifica ){
-    if(cliente[pos].status){
+  if( verifica ){//Se existe
+    if(cliente[pos].status){//Se verifica se ele pode ser excluido
+        //Caso sim, é feita a exclusão
         tmp = cliente[TOT_CLIENTE - 1];
         cliente[TOT_CLIENTE - 1] = cliente[pos];
         cliente[pos] = tmp;
@@ -696,6 +760,9 @@ int excluir_CLIENTE(_CLIENTE*  cliente, int TOT_CLIENTE)
   return 0;
 }
 
+//objetivo: Orderna uma lista de clientes
+//parametros: A lista com todos os cliente, e o total de cadastros
+//retorno: sem retorno
 void ordena_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
 {
   int count, i;
@@ -711,10 +778,14 @@ void ordena_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
   }
 }
 
+//objetivo: Orderna uma lista de clientes pelo nome e salario
+//parametros: A lista com todos os cliente, e o total de cadastros
+//retorno: sem retorno
 void ordenaNomeSalario_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
 {
   int count, i;
   _CLIENTE tmp;
+  //Ordenacao pelo nome
   for(count = 0; count < TOT_CLIENTE; count++){
     for(i = 1 + count; i < TOT_CLIENTE; i++){
         if(strcmp(cliente[count].nome, cliente[i].nome) > 0){
@@ -724,6 +795,7 @@ void ordenaNomeSalario_CLIENTE(_CLIENTE* cliente,int TOT_CLIENTE)
         }
     }
   }
+  //Ordenacao pelo salario
   for(count = 0; count < TOT_CLIENTE; count++){
     for(i = 1 + count; i < TOT_CLIENTE; i++){
         if(!strcmp( cliente[count].nome, cliente[i].nome ) ){

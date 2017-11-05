@@ -35,4 +35,6 @@ void modeloChevrolet(_VENDA* venda, _CARRO* carro, _CLIENTE* cliente,int TOT_VEN
 
 void listagenModelo(_VENDA* venda, _CARRO* carro, _CLIENTE* cliente,int TOT_VENDAS, int TOT_CLIENTE, int TOT_CARROS,int fabricante,int escolha);
 
+void contagemFabricante(int * qtd, _CARRO* carro, int TOT_CARROS);
+void contagemModelo(int * qtd, _CARRO* carro, int TOT_CARROS, int fabricante);
 #endif
